@@ -45,12 +45,13 @@ export function registerSkillsResources(
   );
 
   // Per-skill resource: cursor://skills/{name}
+  // params.name extracted from URI template
   server.resource(
     'cursor-skill',
     'cursor://skills/{name}',
     async (uri, params: Record<string, unknown>) => {
       try {
-        const name = String(params.name ?? '');
+        const name = String(params.name ?? '').trim();
         if (!name) {
           throw new Error('Skill name parameter is required');
         }

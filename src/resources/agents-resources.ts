@@ -46,12 +46,13 @@ export function registerAgentsResources(
   );
 
   // Per-agent resource: cursor://agents/{name}
+  // params.name extracted from URI template
   server.resource(
     'cursor-agent',
     'cursor://agents/{name}',
     async (uri, params: Record<string, unknown>) => {
       try {
-        const name = String(params.name ?? '');
+        const name = String(params.name ?? '').trim();
         if (!name) {
           throw new Error('Agent name parameter is required');
         }

@@ -48,12 +48,13 @@ export function registerRulesResources(
   );
 
   // Per-rule resource: cursor://rules/{name}
+  // params.name extracted from URI template
   server.resource(
     'cursor-rule',
     'cursor://rules/{name}',
     async (uri, params: Record<string, unknown>) => {
       try {
-        const name = String(params.name ?? '');
+        const name = String(params.name ?? '').trim();
         if (!name) {
           throw new Error('Rule name parameter is required');
         }
