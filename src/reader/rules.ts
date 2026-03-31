@@ -23,17 +23,22 @@ export async function loadAllRules(
     const files = readdirSync(rulesDir, { withFileTypes: false });
     const mdcFiles = micromatch(files as string[], '*.mdc');
 
-    const rules = new Map<string, CursorRule>();
+    // Parse all rule files in parallel for faster startup and reload
+    const results = await Promise.allSettled(
+      mdcFiles.map((file) => parseRuleFile(path.join(rulesDir, file)))
+    );
 
-    for (const file of mdcFiles) {
-      try {
-        const filePath = path.join(rulesDir, file);
-        const rule = await parseRuleFile(filePath);
-        rules.set(rule.name, rule);
-      } catch (err) {
+    const rules = new Map<string, CursorRule>();
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      if (result.status === 'fulfilled') {
+        rules.set(result.value.name, result.value);
+      } else {
         process.stderr.write(
-          `[clodbridge] Failed to parse rule "${file}": ${
-            err instanceof Error ? err.message : String(err)
+          `[clodbridge] Failed to parse rule "${mdcFiles[i]}": ${
+            result.reason instanceof Error
+              ? result.reason.message
+              : String(result.reason)
           }\n`
         );
       }
@@ -63,6 +68,13 @@ export function getApplicableRules(
 ): CursorRule[] {
   const applicable: CursorRule[] = [];
 
+  // Normalize paths once before the loop: O(F) instead of O(R×F)
+  // Converts absolute paths to project-relative for glob matching
+  const normalizedPaths = filePaths.map((p) => {
+    if (path.isAbsolute(p)) return path.relative(projectRoot, p);
+    return p;
+  });
+
   for (const rule of rules.values()) {
     // Always-apply rules are always applicable
     if (rule.mode === 'always') {
@@ -72,18 +84,8 @@ export function getApplicableRules(
 
     // Auto-attached rules are applicable if their globs match
     if (rule.mode === 'auto-attached' && rule.globs.length > 0) {
-      // Normalize paths: convert absolute to relative-from-projectRoot
-      const normalizedPaths = filePaths.map((p) => {
-        if (path.isAbsolute(p)) {
-          return path.relative(projectRoot, p);
-        }
-        return p;
-      });
-
       // Check if any normalized path matches any glob
-      const matches = micromatch(normalizedPaths, rule.globs, {
-        matchBase: true,
-      });
+      const matches = micromatch(normalizedPaths, rule.globs);
 
       if (matches.length > 0) {
         applicable.push(rule);

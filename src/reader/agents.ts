@@ -25,17 +25,22 @@ export async function loadAllAgents(
     const files = readdirSync(agentsDir, { withFileTypes: false });
     const mdFiles = micromatch(files as string[], '*.md');
 
-    const agents = new Map<string, CursorAgent>();
+    // Parse all agent files in parallel for faster startup and reload
+    const results = await Promise.allSettled(
+      mdFiles.map((file) => parseAgentFile(path.join(agentsDir, file)))
+    );
 
-    for (const file of mdFiles) {
-      try {
-        const filePath = path.join(agentsDir, file);
-        const agent = await parseAgentFile(filePath);
-        agents.set(agent.name, agent);
-      } catch (err) {
+    const agents = new Map<string, CursorAgent>();
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      if (result.status === 'fulfilled') {
+        agents.set(result.value.name, result.value);
+      } else {
         process.stderr.write(
-          `[clodbridge] Failed to parse agent "${file}": ${
-            err instanceof Error ? err.message : String(err)
+          `[clodbridge] Failed to parse agent "${mdFiles[i]}": ${
+            result.reason instanceof Error
+              ? result.reason.message
+              : String(result.reason)
           }\n`
         );
       }

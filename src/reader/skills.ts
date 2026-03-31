@@ -3,7 +3,7 @@
  * Scans .cursor/skills/ directory for named skill subdirectories.
  */
 
-import { readdirSync } from 'node:fs';
+import { readdirSync, statSync } from 'node:fs';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { parseSkillFile } from './parse.js';
@@ -24,21 +24,47 @@ export async function loadAllSkills(
     // Search for SKILL.md files one level deep: skills/*/SKILL.md
     const subdirs = readdirSync(skillsDir, { withFileTypes: true });
 
-    const skills = new Map<string, CursorSkill>();
-
+    // Collect only valid skill entries (real dirs or symlinks pointing to dirs)
+    // with a SKILL.md file present, filtering before async work begins
+    const validEntries: Array<{ name: string; skillFile: string }> = [];
     for (const subdir of subdirs) {
-      if (!subdir.isDirectory()) continue;
+      if (!subdir.isDirectory() && !subdir.isSymbolicLink()) continue;
+
+      // For symlinks, verify the target is a directory
+      if (subdir.isSymbolicLink()) {
+        try {
+          const resolvedPath = path.join(skillsDir, subdir.name);
+          if (!statSync(resolvedPath).isDirectory()) continue;
+        } catch {
+          process.stderr.write(
+            `[clodbridge] Warning: Could not resolve symlink "${subdir.name}" in skills directory\n`
+          );
+          continue;
+        }
+      }
 
       const skillFile = path.join(skillsDir, subdir.name, 'SKILL.md');
       if (!existsSync(skillFile)) continue;
 
-      try {
-        const skill = await parseSkillFile(skillFile);
-        skills.set(skill.name, skill);
-      } catch (err) {
+      validEntries.push({ name: subdir.name, skillFile });
+    }
+
+    // Parse all skill files in parallel for faster startup and reload
+    const results = await Promise.allSettled(
+      validEntries.map(({ skillFile }) => parseSkillFile(skillFile))
+    );
+
+    const skills = new Map<string, CursorSkill>();
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      if (result.status === 'fulfilled') {
+        skills.set(result.value.name, result.value);
+      } else {
         process.stderr.write(
-          `[clodbridge] Failed to parse skill "${subdir.name}/SKILL.md": ${
-            err instanceof Error ? err.message : String(err)
+          `[clodbridge] Failed to parse skill "${validEntries[i].name}/SKILL.md": ${
+            result.reason instanceof Error
+              ? result.reason.message
+              : String(result.reason)
           }\n`
         );
       }
