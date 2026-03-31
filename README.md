@@ -56,10 +56,12 @@ Everything lives in `.cursor/` and syncs instantly to Claude Code via MCP.
 
 ## Test Coverage & Quality
 
-**Test Suite:** 83 passing tests across 10 test files
-- Reader layer: 45 tests (discovery, parsing, rule matching)
-- MCP tools layer: 30 tests (all cursor_* tools)
-- Rules API: 8 tests (list/get rules)
+**Test Suite:** Comprehensive coverage across all layers
+- Reader layer: discovery, parsing, rule matching, file watching
+- MCP tools layer: all `cursor_*` tools with error handling
+- MCP resources layer: all `cursor://` resource endpoints
+- MCP prompts: `load_rules` and `load_skills` context injection
+- Integration tests: end-to-end workflows
 
 **Tooling:**
 - **Linter:** Biome (combined linting + formatting)
@@ -68,6 +70,45 @@ Everything lives in `.cursor/` and syncs instantly to Claude Code via MCP.
 - **Build:** Clean, zero-config compilation
 
 **Coverage Target:** 80%+ on `src/reader/` (parser logic)
+
+---
+
+## MCP Tools & Resources
+
+**MCP Tools** — Fetch and filter rules, skills, agents:
+- `cursor_get_always_rules` — Rules that apply everywhere
+- `cursor_get_applicable_rules(file_paths)` — Rules matching specific files
+- `cursor_get_agent_requested_rules` — Rules agents explicitly request
+- `cursor_list_rules` / `cursor_get_rule(name)` — Browse and fetch rules
+- `cursor_list_skills` / `cursor_get_skill(name)` — Browse and fetch skills
+- `cursor_list_agents` / `cursor_get_agent(name)` — Browse and fetch agents
+
+**MCP Resources** — Read-only file access via resource URIs:
+- `cursor://rules` — JSON index of all rules
+- `cursor://rules/{name}` — Raw rule file content
+- `cursor://skills` — JSON index of all skills
+- `cursor://skills/{name}` — Raw skill file content
+- `cursor://agents` — JSON index of all agents
+- `cursor://agents/{name}` — Raw agent file content
+
+**MCP Prompts** — Context injection slash commands:
+- `/mcp__clodbridge__load_rules` — Inject all always-apply rules
+- `/mcp__clodbridge__load_skills` — Inject all available skills
+
+---
+
+## CLI Usage
+
+```bash
+# Start the MCP server for current directory
+node dist/index.js
+
+# Start the MCP server for a specific project
+node dist/index.js /path/to/project
+
+# Dump always-apply rules in hook format (for settings.json integration)
+node dist/index.js --dump-always-rules /path/to/project
+```
 
 ---
 
