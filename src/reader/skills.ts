@@ -25,7 +25,13 @@ export async function loadAllSkills(
 
     // Collect only valid skill entries (real dirs or symlinks pointing to dirs)
     // with a SKILL.md file present
-    const resolvedRoot = await realpath(projectRoot);
+    let resolvedRoot: string;
+    try {
+      resolvedRoot = await realpath(projectRoot);
+    } catch {
+      // If we can't resolve projectRoot, use it as-is
+      resolvedRoot = projectRoot;
+    }
     const validEntries: Array<{ name: string; skillFile: string }> = [];
     for (const subdir of subdirs) {
       if (!subdir.isDirectory() && !subdir.isSymbolicLink()) continue;
