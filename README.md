@@ -54,6 +54,23 @@ Everything lives in `.cursor/` and syncs instantly to Claude Code via MCP.
 
 ---
 
+## Test Coverage & Quality
+
+**Test Suite:** 83 passing tests across 10 test files
+- Reader layer: 45 tests (discovery, parsing, rule matching)
+- MCP tools layer: 30 tests (all cursor_* tools)
+- Rules API: 8 tests (list/get rules)
+
+**Tooling:**
+- **Linter:** Biome (combined linting + formatting)
+- **Package Manager:** bun with auto-lint/test hooks on file save
+- **Type Checking:** TypeScript strict mode
+- **Build:** Clean, zero-config compilation
+
+**Coverage Target:** 80%+ on `src/reader/` (parser logic)
+
+---
+
 ## Quick Example
 
 **Create a rule** (`.cursor/rules/my-rule.mdc`):
