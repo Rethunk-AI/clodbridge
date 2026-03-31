@@ -2,13 +2,17 @@
  * Integration tests for the CursorReader facade.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { createCursorReader } from '../src/reader/index.js';
 
 describe('CursorReader', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('loads rules, skills, and agents from .cursor directory', async () => {
     const testDir = path.join(os.tmpdir(), `clodbridge-reader-${Date.now()}`);
     await mkdir(testDir, { recursive: true });
@@ -115,39 +119,46 @@ Content`
     }
   });
 
-  it('supports watch with onChange callback', async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-watch-${Date.now()}`);
-    await mkdir(testDir, { recursive: true });
+  it(
+    'supports watch with onChange callback',
+    async () => {
+      const testDir = path.join(os.tmpdir(), `clodbridge-watch-${Date.now()}`);
+      await mkdir(testDir, { recursive: true });
 
-    try {
-      const rulesDir = path.join(testDir, '.cursor', 'rules');
-      await mkdir(rulesDir, { recursive: true });
+      try {
+        const rulesDir = path.join(testDir, '.cursor', 'rules');
+        await mkdir(rulesDir, { recursive: true });
 
-      const reader = await createCursorReader(testDir);
-      const callback = vi.fn();
-      const unsubscribe = reader.watch(callback);
+        const reader = await createCursorReader(testDir);
+        const callback = vi.fn();
+        const unsubscribe = reader.watch(callback);
 
-      // Wait for watcher to initialize
-      await new Promise((resolve) => setTimeout(resolve, 200));
+        // Wait for watcher to initialize
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
-      // Add a file
-      await writeFile(
-        path.join(rulesDir, 'new-rule.mdc'),
-        `---
+        // Add a file
+        await writeFile(
+          path.join(rulesDir, 'new-rule.mdc'),
+          `---
 description: New rule
 ---
 Content`
-      );
+        );
 
-      // Wait for debounce and callback
-      await new Promise((resolve) => setTimeout(resolve, 400));
+        // Wait for debounce and callback
+        await new Promise((resolve) => setTimeout(resolve, 400));
 
-      // Callback might be called (depends on file system events)
-      // The important thing is that unsubscribe works without throwing
-      expect(typeof unsubscribe).toBe('function');
-      unsubscribe();
-    } finally {
-      await rm(testDir, { recursive: true, force: true });
-    }
-  });
+        // Callback might be called (depends on file system events)
+        // The important thing is that unsubscribe works without throwing
+        expect(typeof unsubscribe).toBe('function');
+        unsubscribe();
+
+        // Wait a bit to ensure watcher is fully stopped
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      } finally {
+        await rm(testDir, { recursive: true, force: true });
+      }
+    },
+    5000
+  );
 });
