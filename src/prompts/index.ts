@@ -5,7 +5,6 @@
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CursorReader } from '../reader/index.js';
-import { getAlwaysRules } from '../reader/rules.js';
 
 /**
  * Register MCP prompts (slash commands).
@@ -15,96 +14,62 @@ export function registerPrompts(
   reader: CursorReader
 ): void {
   // Prompt: /mcp__clodbridge__load_rules
-  // Returns all always-apply rules as a user message for context injection.
+  // Returns cached always-apply rules markdown (rebuilt on reload, not per call).
   server.prompt(
     'load_rules',
     'Load all always-apply Cursor rules for this project into context',
     async () => {
-      try {
-        const rules = getAlwaysRules(reader.store.rules);
-
-        const ruleTexts = rules
-          .map((r) => `## ${r.name}\n\n${r.content}`)
-          .join('\n\n');
-
-        const message =
-          ruleTexts.length > 0
-            ? `Here are the Cursor rules for this project:\n\n${ruleTexts}`
-            : 'No always-apply Cursor rules found for this project.';
-
-        return {
-          messages: [
-            {
-              role: 'user',
-              content: {
-                type: 'text',
-                text: message,
-              },
+      return {
+        messages: [
+          {
+            role: 'user',
+            content: {
+              type: 'text',
+              text: reader.store.prompts.rulesPrompt,
             },
-          ],
-        };
-      } catch (err) {
-        return {
-          messages: [
-            {
-              role: 'user',
-              content: {
-                type: 'text',
-                text: `Error loading rules: ${
-                  err instanceof Error ? err.message : String(err)
-                }`,
-              },
-            },
-          ],
-        };
-      }
+          },
+        ],
+      };
     }
   );
 
   // Prompt: /mcp__clodbridge__load_skills
-  // Returns all available skills as a user message for context injection.
+  // Returns cached skills markdown (rebuilt on reload, not per call).
   server.prompt(
     'load_skills',
     'Load all available Cursor skills for this project into context',
     async () => {
-      try {
-        const skills = Array.from(reader.store.skills.values());
-
-        const skillTexts = skills
-          .map((s) => `## ${s.name}\n\n${s.description}\n\n${s.content}`)
-          .join('\n\n');
-
-        const message =
-          skillTexts.length > 0
-            ? `Here are the Cursor skills available for this project:\n\n${skillTexts}`
-            : 'No Cursor skills found for this project.';
-
-        return {
-          messages: [
-            {
-              role: 'user',
-              content: {
-                type: 'text',
-                text: message,
-              },
+      return {
+        messages: [
+          {
+            role: 'user',
+            content: {
+              type: 'text',
+              text: reader.store.prompts.skillsPrompt,
             },
-          ],
-        };
-      } catch (err) {
-        return {
-          messages: [
-            {
-              role: 'user',
-              content: {
-                type: 'text',
-                text: `Error loading skills: ${
-                  err instanceof Error ? err.message : String(err)
-                }`,
-              },
+          },
+        ],
+      };
+    }
+  );
+
+  // Prompt: /mcp__clodbridge__load_agents
+  // Returns cached agents markdown (rebuilt on reload, not per call).
+  server.prompt(
+    'load_agents',
+    'Load all available Cursor agents for this project into context',
+    async () => {
+      return {
+        messages: [
+          {
+            role: 'user',
+            content: {
+              type: 'text',
+              text: reader.store.prompts.agentsPrompt,
             },
-          ],
-        };
-      }
+          },
+        ],
+      };
     }
   );
 }

@@ -20,18 +20,12 @@ export function registerAgentsResources(
     { mimeType: 'application/json' },
     async (uri) => {
       try {
-        const index = Array.from(reader.store.agents.values()).map((a) => ({
-          name: a.name,
-          description: a.description,
-          model: a.model || '(default)',
-        }));
-
         return {
           contents: [
             {
               uri: uri.toString(),
               mimeType: 'application/json',
-              text: JSON.stringify(index, null, 2),
+              text: JSON.stringify(reader.store.summaries.agentSummaries, null, 2),
             },
           ],
         };

@@ -18,6 +18,7 @@ export interface CursorRule {
   filePath: string;       // absolute path to .mdc file
   description: string;
   globs: string[];        // parsed array, empty if none
+  globMatcher: ((path: string) => boolean) | null; // precompiled glob matcher, null if no globs
   alwaysApply: boolean;
   mode: RuleMode;
   content: string;        // full markdown body (no frontmatter)
@@ -43,10 +44,26 @@ export interface CursorAgent {
 
 // ---- Cache structure ----
 
+export interface SummaryCache {
+  ruleSummaries: RuleSummary[];
+  alwaysRules: CursorRule[];
+  agentRequestedRules: CursorRule[];
+  skillSummaries: SkillSummary[];
+  agentSummaries: AgentSummary[];
+}
+
+export interface PromptCache {
+  rulesPrompt: string;    // pre-built markdown for /load_rules
+  skillsPrompt: string;   // pre-built markdown for /load_skills
+  agentsPrompt: string;   // pre-built markdown for /load_agents
+}
+
 export interface CursorStore {
   rules: Map<string, CursorRule>;     // keyed by name
   skills: Map<string, CursorSkill>;   // keyed by name
   agents: Map<string, CursorAgent>;   // keyed by name
+  summaries: SummaryCache;
+  prompts: PromptCache;
 }
 
 // ---- Reader interface ----

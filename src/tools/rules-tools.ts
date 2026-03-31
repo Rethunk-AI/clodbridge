@@ -5,7 +5,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CursorReader } from '../reader/index.js';
-import { getAlwaysRules, getApplicableRules } from '../reader/rules.js';
+import { getApplicableRules } from '../reader/rules.js';
 
 /**
  * Register rule-related MCP tools on the server.
@@ -21,7 +21,7 @@ export function registerRulesTools(
     {},
     async () => {
       try {
-        const rules = getAlwaysRules(reader.store.rules);
+        const rules = reader.store.summaries.alwaysRules;
         return {
           content: [
             {
@@ -113,17 +113,11 @@ export function registerRulesTools(
     {},
     async () => {
       try {
-        const rules = Array.from(reader.store.rules.values()).map((r) => ({
-          name: r.name,
-          description: r.description,
-          mode: r.mode,
-          alwaysApply: r.alwaysApply,
-        }));
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(rules, null, 2),
+              text: JSON.stringify(reader.store.summaries.ruleSummaries, null, 2),
             },
           ],
         };
@@ -202,13 +196,11 @@ export function registerRulesTools(
     {},
     async () => {
       try {
-        const rules = Array.from(reader.store.rules.values())
-          .filter((r) => r.mode === 'agent-requested')
-          .map((r) => ({
-            name: r.name,
-            description: r.description,
-            content: r.content,
-          }));
+        const rules = reader.store.summaries.agentRequestedRules.map((r) => ({
+          name: r.name,
+          description: r.description,
+          content: r.content,
+        }));
         return {
           content: [
             {

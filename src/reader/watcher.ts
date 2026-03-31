@@ -8,10 +8,23 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 /**
+ * Classify a changed file path into its collection based on the first
+ * path segment relative to the .cursor directory.
+ */
+function getCollectionKey(filePath: string, cursorDir: string): string {
+  const relative = path.relative(cursorDir, filePath);
+  const firstSegment = relative.split(path.sep)[0];
+  if (firstSegment === 'rules' || firstSegment === 'skills' || firstSegment === 'agents') {
+    return firstSegment;
+  }
+  return '_other';
+}
+
+/**
  * Create a file watcher for the .cursor directory.
- * Calls onChange callback on add/change/unlink events, with 200ms debounce.
- * If the directory doesn't exist at startup, watches the parent directory
- * for the .cursor/ directory to be created, then switches to watching it.
+ * Uses per-collection debouncing: changes in rules/, skills/, and agents/
+ * are debounced independently so multi-file edits in one collection
+ * don't delay reloads for other collections.
  *
  * @param cursorDir Absolute path to .cursor directory
  * @param onChange Callback invoked when files change
@@ -21,26 +34,30 @@ export function createWatcher(
   cursorDir: string,
   onChange: (filePath: string) => void
 ): () => void {
-  let debounceTimeout: NodeJS.Timeout | null = null;
+  const debounceTimers = new Map<string, NodeJS.Timeout>();
   let isStopped = false;
   let activeWatcher: FSWatcher | null = null;
 
   const debouncedCallback = (filePath: string) => {
-    if (debounceTimeout) {
-      clearTimeout(debounceTimeout);
+    const key = getCollectionKey(filePath, cursorDir);
+    const existing = debounceTimers.get(key);
+    if (existing) {
+      clearTimeout(existing);
     }
-    debounceTimeout = setTimeout(() => {
+    debounceTimers.set(key, setTimeout(() => {
+      debounceTimers.delete(key);
       if (!isStopped) {
         onChange(filePath);
       }
-    }, 200);
+    }, 200));
   };
 
   const stopFn = () => {
     isStopped = true;
-    if (debounceTimeout) {
-      clearTimeout(debounceTimeout);
+    for (const timer of debounceTimers.values()) {
+      clearTimeout(timer);
     }
+    debounceTimers.clear();
     if (activeWatcher) {
       activeWatcher.close().catch(() => {
         // ignore errors

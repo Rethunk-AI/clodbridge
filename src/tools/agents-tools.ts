@@ -20,16 +20,11 @@ export function registerAgentsTools(
     {},
     async () => {
       try {
-        const agents = Array.from(reader.store.agents.values()).map((a) => ({
-          name: a.name,
-          description: a.description,
-          model: a.model || '(default)',
-        }));
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(agents, null, 2),
+              text: JSON.stringify(reader.store.summaries.agentSummaries, null, 2),
             },
           ],
         };

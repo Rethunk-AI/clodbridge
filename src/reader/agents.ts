@@ -3,8 +3,7 @@
  * Scans .cursor/agents/ directory for agent definition files.
  */
 
-import { readdirSync } from 'node:fs';
-import micromatch from 'micromatch';
+import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { parseAgentFile } from './parse.js';
 import type { CursorAgent } from './types.js';
@@ -22,8 +21,8 @@ export async function loadAllAgents(
 
   try {
     // Search for .md files directly in agents/, not recursively
-    const files = readdirSync(agentsDir, { withFileTypes: false });
-    const mdFiles = micromatch(files as string[], '*.md');
+    const files = await readdir(agentsDir);
+    const mdFiles = files.filter((f) => f.endsWith('.md'));
 
     // Parse all agent files in parallel for faster startup and reload
     const results = await Promise.allSettled(

@@ -20,15 +20,11 @@ export function registerSkillsTools(
     {},
     async () => {
       try {
-        const skills = Array.from(reader.store.skills.values()).map((s) => ({
-          name: s.name,
-          description: s.description,
-        }));
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(skills, null, 2),
+              text: JSON.stringify(reader.store.summaries.skillSummaries, null, 2),
             },
           ],
         };

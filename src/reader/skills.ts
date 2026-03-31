@@ -3,8 +3,7 @@
  * Scans .cursor/skills/ directory for named skill subdirectories.
  */
 
-import { readdirSync, statSync } from 'node:fs';
-import { existsSync } from 'node:fs';
+import { readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { parseSkillFile } from './parse.js';
 import type { CursorSkill } from './types.js';
@@ -22,29 +21,22 @@ export async function loadAllSkills(
 
   try {
     // Search for SKILL.md files one level deep: skills/*/SKILL.md
-    const subdirs = readdirSync(skillsDir, { withFileTypes: true });
+    const subdirs = await readdir(skillsDir, { withFileTypes: true });
 
     // Collect only valid skill entries (real dirs or symlinks pointing to dirs)
-    // with a SKILL.md file present, filtering before async work begins
+    // with a SKILL.md file present
     const validEntries: Array<{ name: string; skillFile: string }> = [];
     for (const subdir of subdirs) {
       if (!subdir.isDirectory() && !subdir.isSymbolicLink()) continue;
 
-      // For symlinks, verify the target is a directory
-      if (subdir.isSymbolicLink()) {
-        try {
-          const resolvedPath = path.join(skillsDir, subdir.name);
-          if (!statSync(resolvedPath).isDirectory()) continue;
-        } catch {
-          process.stderr.write(
-            `[clodbridge] Warning: Could not resolve symlink "${subdir.name}" in skills directory\n`
-          );
-          continue;
-        }
-      }
-
       const skillFile = path.join(skillsDir, subdir.name, 'SKILL.md');
-      if (!existsSync(skillFile)) continue;
+      try {
+        const s = await stat(skillFile);
+        if (!s.isFile()) continue;
+      } catch {
+        // SKILL.md doesn't exist or symlink is broken — skip
+        continue;
+      }
 
       validEntries.push({ name: subdir.name, skillFile });
     }

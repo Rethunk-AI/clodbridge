@@ -20,17 +20,12 @@ export function registerSkillsResources(
     { mimeType: 'application/json' },
     async (uri) => {
       try {
-        const index = Array.from(reader.store.skills.values()).map((s) => ({
-          name: s.name,
-          description: s.description,
-        }));
-
         return {
           contents: [
             {
               uri: uri.toString(),
               mimeType: 'application/json',
-              text: JSON.stringify(index, null, 2),
+              text: JSON.stringify(reader.store.summaries.skillSummaries, null, 2),
             },
           ],
         };

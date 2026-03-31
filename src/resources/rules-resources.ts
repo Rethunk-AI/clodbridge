@@ -20,20 +20,12 @@ export function registerRulesResources(
     { mimeType: 'application/json' },
     async (uri) => {
       try {
-        const index = Array.from(reader.store.rules.values()).map((r) => ({
-          name: r.name,
-          description: r.description,
-          mode: r.mode,
-          globs: r.globs,
-          alwaysApply: r.alwaysApply,
-        }));
-
         return {
           contents: [
             {
               uri: uri.toString(),
               mimeType: 'application/json',
-              text: JSON.stringify(index, null, 2),
+              text: JSON.stringify(reader.store.summaries.ruleSummaries, null, 2),
             },
           ],
         };

@@ -3,9 +3,8 @@
  * Scans .cursor/rules/ directory and provides rule matching utilities.
  */
 
-import { readdirSync } from 'node:fs';
+import { readdir } from 'node:fs/promises';
 import path from 'node:path';
-import micromatch from 'micromatch';
 import { parseRuleFile } from './parse.js';
 import type { CursorRule } from './types.js';
 
@@ -20,8 +19,8 @@ export async function loadAllRules(
   const rulesDir = path.join(projectRoot, '.cursor', 'rules');
 
   try {
-    const files = readdirSync(rulesDir, { withFileTypes: false });
-    const mdcFiles = micromatch(files as string[], '*.mdc');
+    const files = await readdir(rulesDir);
+    const mdcFiles = files.filter((f) => f.endsWith('.mdc'));
 
     // Parse all rule files in parallel for faster startup and reload
     const results = await Promise.allSettled(
@@ -82,12 +81,9 @@ export function getApplicableRules(
       continue;
     }
 
-    // Auto-attached rules are applicable if their globs match
-    if (rule.mode === 'auto-attached' && rule.globs.length > 0) {
-      // Check if any normalized path matches any glob
-      const matches = micromatch(normalizedPaths, rule.globs);
-
-      if (matches.length > 0) {
+    // Auto-attached rules: use precompiled glob matcher for O(1) pattern compilation
+    if (rule.mode === 'auto-attached' && rule.globMatcher) {
+      if (normalizedPaths.some(rule.globMatcher)) {
         applicable.push(rule);
       }
     }

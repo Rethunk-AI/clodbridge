@@ -3,7 +3,11 @@
  * Wires together the reader, tools, resources, and prompts.
  */
 
+import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json') as { version: string };
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createCursorReader } from './reader/index.js';
 import { registerRulesTools } from './tools/rules-tools.js';
@@ -24,7 +28,7 @@ export async function createServer(projectRoot: string): Promise<McpServer> {
 
   const server = new McpServer({
     name: 'clodbridge',
-    version: '1.0.0',
+    version,
   });
 
   // Register tools

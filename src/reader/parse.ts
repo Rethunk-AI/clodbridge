@@ -4,8 +4,9 @@
  */
 
 import matter from 'gray-matter';
+import micromatch from 'micromatch';
 import path from 'node:path';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import type {
   CursorRule,
   CursorSkill,
@@ -69,11 +70,21 @@ export async function parseRuleFile(filePath: string): Promise<CursorRule> {
     filePath,
     description: data.description ?? '',
     globs,
+    globMatcher: globs.length > 0 ? compileGlobMatcher(globs) : null,
     alwaysApply,
     mode,
     content,
     raw: text,
   };
+}
+
+/**
+ * Precompile an array of glob patterns into a single matcher function.
+ */
+function compileGlobMatcher(globs: string[]): (path: string) => boolean {
+  const matchers = globs.map((g) => micromatch.matcher(g));
+  if (matchers.length === 1) return matchers[0]!;
+  return (p: string) => matchers.some((m) => m(p));
 }
 
 /**
