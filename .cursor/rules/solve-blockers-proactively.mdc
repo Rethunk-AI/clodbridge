@@ -1,0 +1,136 @@
+---
+description: When encountering a blocker, solve it or escalate; don't work around it
+globs:
+alwaysApply: true
+---
+
+# Solve Blockers Proactively
+
+## Rule
+
+When you hit a blocker, don't ignore it and keep working. Either solve it or ask the user for help.
+
+## What's a Blocker?
+
+- You can't run tests (npm/bun install failed)
+- You can't verify code compiles (tsc is unavailable)
+- A critical dependency isn't available
+- You can't validate your assumptions
+- A permission or filesystem error prevents progress
+
+## Decision Tree
+
+```
+[Hit a blocker]
+    ↓
+[Is there a workaround I can try in < 10 minutes?]
+    ├─ YES → Try the workaround
+    │        ├─ Worked? → Continue
+    │        └─ Failed? → Go to "Escalate" below
+    └─ NO → Go to "Escalate" below
+
+[Escalate]
+    ↓
+[Explain the blocker to the user]
+    ├─ "npm install failed with EROFS"
+    ├─ "I can't run tests to verify my code"
+    ├─ "The TypeScript compiler isn't available"
+    └─ "I need permission to write to /tmp"
+    ↓
+[Offer options]
+    ├─ "Option A: Install dependencies outside Claude Code"
+    ├─ "Option B: Use a different approach that doesn't require npm"
+    └─ "Option C: Skip this step and continue (risky)"
+    ↓
+[Wait for guidance before proceeding]
+```
+
+## Examples
+
+### Example 1: npm install fails (EROFS)
+
+```
+❌ BAD:
+npm install → fails with "read-only file system"
+[keeps writing code anyway]
+Result: Can't verify anything works
+
+✅ GOOD:
+npm install → fails with "read-only file system"
+Try: npm install --cache=/tmp/claude-1000/npm-cache (10min)
+     → Still fails
+Try: bun install → Still fails
+[Escalate to user]
+"npm and bun both hit sandbox restrictions.
+Options: (1) install deps outside Claude Code, (2) I write code blind (risky),
+(3) we validate code using an online TypeScript playground"
+```
+
+### Example 2: Can't run tests
+
+```
+❌ BAD:
+tsc --noEmit → fails (tsc not in PATH)
+[keeps writing features]
+Result: Ship code that doesn't compile
+
+✅ GOOD:
+tsc --noEmit → fails (tsc not in PATH)
+Try: npx tsc --noEmit (should work via node_modules)
+Try: bun run typecheck
+[If none work]
+"Can't verify TypeScript. Options: (1) manual syntax check by reading code,
+(2) continue and assume correctness (risky), (3) install deps and retry"
+```
+
+### Example 3: Design assumption is unclear
+
+```
+❌ BAD:
+[Assume the user wants MCP Resources]
+[Write 200 lines implementing cursor:// URIs]
+[Commit]
+[User later: "I didn't want resources"]
+
+✅ GOOD:
+[Planning phase: "I'm planning to add MCP Resources (cursor:// URIs)"]
+[User: "Actually, just tools are fine"]
+[Don't write resources]
+```
+
+## Workaround Examples (Try These)
+
+### If npm install fails:
+
+1. `npm install --cache=/tmp/claude-1000/npm-cache`
+2. `bun install`
+3. `export BUN_TMPDIR=/tmp/claude-1000/bun && bun install`
+4. Ask user: "Can you run `npm install` outside Claude Code?"
+
+### If tsc isn't available:
+
+1. `npx tsc` (should use node_modules/.bin)
+2. `bun run typecheck`
+3. Read the TypeScript by hand and check for obvious errors
+4. Use an online playground (tsc.run or similar)
+
+### If you can't run tests:
+
+1. `npx vitest`
+2. `bun test`
+3. Read the test file and verify logic by inspection
+4. Ask user for test environment help
+
+## For clodbridge specifically
+
+Don't ignore:
+- npm/bun installation failures (these are critical for TypeScript projects)
+- TypeScript compilation errors (even if you "think it's fine")
+- Test failures (don't rewrite tests to pass; fix the code)
+- Missing or corrupted test fixtures
+
+## Mindset
+
+**"If I can't verify it works, I shouldn't commit it."**
+
+If verification is impossible, escalate and wait for guidance. Don't ship blind.

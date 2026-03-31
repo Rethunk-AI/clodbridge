@@ -1,0 +1,123 @@
+---
+description: Validate frequently and early; find errors when they're small
+globs: src/**/*.ts, tests/**/*.ts
+alwaysApply: true
+---
+
+# Incremental Validation
+
+## Rule
+
+Validate code after each small increment, not after implementing an entire subsystem.
+
+## Validation Frequency
+
+| Milestone | Validate? | How |
+|-----------|-----------|-----|
+| After writing 1 file (< 100 LOC) | Optional* | Read for syntax errors |
+| After writing 2-3 files (100-300 LOC) | YES | `tsc --noEmit` at minimum |
+| After finishing a feature commit | YES | `npm test` for relevant tests |
+| Before committing | YES | Both typecheck and test |
+| After implementing a new subsystem | YES | Integration check (call an MCP tool, etc.) |
+
+*Only skip for tiny files (< 50 LOC) that are trivial to review.
+
+## Validation Checklist
+
+Before you move to the next task:
+
+```
+[ ] TypeScript compiles (npm run typecheck or equivalent)
+[ ] No syntax errors in any .ts file
+[ ] Tests pass (if you wrote tests)
+[ ] Imports resolve (all `from` statements find their targets)
+[ ] No unused variables or imports
+```
+
+## Error Cascade Prevention
+
+**Bad scenario:**
+```
+Write types.ts (50 LOC) → Don't validate
+Write parse.ts (150 LOC) → Don't validate
+Write rules.ts (200 LOC) → Don't validate
+Write skills.ts (100 LOC) → Don't validate
+[Now: npm test]
+[Result: 47 errors, no idea which file caused what]
+```
+
+**Good scenario:**
+```
+Write types.ts (50 LOC) → Validate ✓
+  [No issues]
+Write parse.ts (150 LOC) → Validate ✓
+  [Error: "CursorRule not found"]
+  [Fix: Wrong import]
+  [Re-validate ✓]
+Write rules.ts (200 LOC) → Validate ✓
+  [No new issues]
+[Each step is fast; errors are caught immediately]
+```
+
+## What to Do When Validation Fails
+
+### TypeScript error
+
+```
+"Property 'globs' does not exist on type 'RuleFrontmatter'"
+
+Step 1: Read the error — it's pointing to a specific line
+Step 2: Check the types.ts definition — is 'globs' defined?
+Step 3: If not defined, add it
+Step 4: If defined, fix the code using it
+Step 5: Re-validate
+```
+
+### Test failure
+
+```
+"parseGlobs('src/**/*.ts, *.md') should return ['src/**/*.ts', '*.md']"
+"Received: ['src/**/*.ts  ', '  *.md']"
+
+Step 1: The test is correct; your implementation has a bug (extra whitespace)
+Step 2: Fix parseGlobs to trim() properly
+Step 3: Re-run the test
+```
+
+### Import error
+
+```
+"Cannot find module './parse.js' or its corresponding type declarations"
+
+Step 1: Check the file exists (does parse.ts exist?)
+Step 2: Check the path is correct (is it in src/reader/?)
+Step 3: Check the import statement (is it using .js extension for ESM?)
+Step 4: Fix and re-validate
+```
+
+## For clodbridge specifically
+
+Validation checkpoints:
+
+1. **After types.ts** → `tsc --noEmit` (0 errors)
+2. **After parse.ts + parse.test.ts** → `npm test tests/parse.test.ts` (all pass)
+3. **After each discovery module** → `tsc --noEmit` (incremental compile)
+4. **After reader facade** → `tsc --noEmit` (whole reader/ compiles)
+5. **After server.ts** → `tsc --noEmit` (MCP types resolve)
+6. **After each tool file** → Read for correctness; tools are straightforward
+7. **After all tools** → Call one tool with mock data (sanity check)
+8. **After all resources** → Verify resource URI patterns match schema
+9. **Final typecheck** → `tsc --noEmit` (entire src/ compiles)
+10. **Final test run** → `npm test` (all tests pass)
+
+## Benefit
+
+**You know it works, not just that it looks right.**
+
+Validation forces you to:
+- Find typos (unresolved imports)
+- Find logic errors (test failures)
+- Find type mismatches (TypeScript errors)
+- Find integration issues (MCP tools don't work)
+
+All small, all caught early, all easy to fix.

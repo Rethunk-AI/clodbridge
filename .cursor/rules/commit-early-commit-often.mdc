@@ -1,0 +1,79 @@
+---
+description: Commit small logical changes as you write them, not in batches at the end
+globs:
+alwaysApply: true
+---
+
+# Commit Early, Commit Often
+
+## Rule
+
+Commit code as soon as a logical unit is complete, not in batches at the end of a session.
+
+## Why
+
+- **Catch errors early** — If commit N breaks the build, you know what caused it (the delta)
+- **Preserve optionality** — Each commit is a checkpoint; you can revert a change without losing everything
+- **Document intent** — The commit message documents *when* you made the change and *why*
+- **Enable review** — Small commits are reviewable; large batches are not
+
+## When to Commit
+
+After completing **one of these**:
+- A new type definition (types.ts)
+- A parsing function + its tests
+- A discovery module (rules.ts, skills.ts, agents.ts)
+- A single MCP tool registration
+- A refactoring of one function
+- Documentation for one feature
+
+❌ **Don't do this:**
+```
+Write types.ts → parse.ts → rules.ts → skills.ts → agents.ts
+(commit all 5 at the end)
+```
+
+✅ **Do this:**
+```
+Write types.ts → (commit) → parse.ts → (commit) → rules.ts → (commit)
+```
+
+## Constraint: Batch Size
+
+Commits should be **< 8 files** and **< 500 lines changed**. If you're about to commit more, split into smaller logical chunks.
+
+### Example commit sequence
+
+```
+1. chore: add TypeScript config and dependencies
+   - package.json, tsconfig.json, vitest.config.ts
+
+2. feat: add type definitions
+   - types.ts only
+
+3. feat: implement parsing with gray-matter
+   - parse.ts, parse.test.ts, test fixtures
+
+4. feat: implement rule discovery
+   - rules.ts only
+```
+
+Each commit is a stopping point. If the user says "I want to pivot," you've only invested in one commit's worth of work.
+
+## Exception
+
+If you are writing a tiny file (< 50 lines) that is tightly coupled to the previous commit, you may batch them. Example:
+
+```
+feat: add MCP prompt for load_rules
+  - src/prompts/index.ts (63 lines)
+```
+
+This is small enough that deferring the commit adds no value.
+
+## For clodbridge specifically
+
+- Commit types.ts before any discovery module
+- Commit tests alongside the code they test
+- Commit documentation last (after code is committed)
+- Never commit more than one MCP tool registration batch before verifying it compiles
