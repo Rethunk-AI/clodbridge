@@ -60,4 +60,51 @@ export function registerPrompts(
       }
     }
   );
+
+  // Prompt: /mcp__clodbridge__load_skills
+  // Returns all available skills as a user message for context injection.
+  server.prompt(
+    'load_skills',
+    'Load all available Cursor skills for this project into context',
+    async () => {
+      try {
+        const skills = Array.from(reader.store.skills.values());
+
+        const skillTexts = skills
+          .map((s) => `## ${s.name}\n\n${s.description}\n\n${s.content}`)
+          .join('\n\n');
+
+        const message =
+          skillTexts.length > 0
+            ? `Here are the Cursor skills available for this project:\n\n${skillTexts}`
+            : 'No Cursor skills found for this project.';
+
+        return {
+          messages: [
+            {
+              role: 'user',
+              content: {
+                type: 'text',
+                text: message,
+              },
+            },
+          ],
+        };
+      } catch (err) {
+        return {
+          messages: [
+            {
+              role: 'user',
+              content: {
+                type: 'text',
+                text: `Error loading skills: ${
+                  err instanceof Error ? err.message : String(err)
+                }`,
+              },
+            },
+          ],
+        };
+      }
+    }
+  );
 }

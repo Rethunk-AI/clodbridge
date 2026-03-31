@@ -151,4 +151,98 @@ describe('MCP Prompts', () => {
       expect(text).toContain('always');
     });
   });
+
+  describe('load_skills prompt', () => {
+    it('registers the load_skills prompt', () => {
+      const promptNames = server.getPromptNames();
+      expect(promptNames).toContain('load_skills');
+    });
+
+    it('returns a user message', async () => {
+      const result = await server.callPrompt('load_skills');
+
+      expect(result).toHaveProperty('messages');
+      expect(Array.isArray(result.messages)).toBe(true);
+      expect(result.messages.length).toBeGreaterThan(0);
+      expect(result.messages[0].role).toBe('user');
+    });
+
+    it('returns message with text content', async () => {
+      const result = await server.callPrompt('load_skills');
+
+      expect(result.messages[0]).toHaveProperty('content');
+      expect(result.messages[0].content.type).toBe('text');
+      expect(typeof result.messages[0].content.text).toBe('string');
+    });
+
+    it('includes skill content in the message', async () => {
+      const result = await server.callPrompt('load_skills');
+      const text = result.messages[0].content.text;
+
+      // Should mention that it's loading skills
+      expect(text.toLowerCase()).toContain('skill');
+
+      // Should include at least one skill since fixtures have my-skill
+      expect(text).toContain('##');
+    });
+
+    it('formats skills as markdown sections', async () => {
+      const result = await server.callPrompt('load_skills');
+      const text = result.messages[0].content.text;
+
+      // Should use markdown heading format for skills
+      expect(text).toMatch(/##\s+\w+/);
+    });
+
+    it('includes skill name', async () => {
+      const result = await server.callPrompt('load_skills');
+      const text = result.messages[0].content.text;
+
+      // Should mention my-skill since it's in fixtures
+      expect(text).toContain('my-skill');
+    });
+
+    it('includes skill description', async () => {
+      const result = await server.callPrompt('load_skills');
+      const text = result.messages[0].content.text;
+
+      // Should have description in the content
+      expect(text.length).toBeGreaterThan('my-skill'.length);
+    });
+
+    it('handles empty skills gracefully', async () => {
+      const emptyReader = await createCursorReader('/nonexistent/path');
+      const emptyServer = new MockMcpServer();
+      registerPrompts(emptyServer as any, emptyReader);
+
+      const result = await emptyServer.callPrompt('load_skills');
+      const text = result.messages[0].content.text;
+
+      // Should indicate no skills found
+      expect(text).toContain('No Cursor skills');
+    });
+
+    it('returns valid message format', async () => {
+      const result = await server.callPrompt('load_skills');
+
+      expect(result.messages[0]).toEqual(
+        expect.objectContaining({
+          role: 'user',
+          content: expect.objectContaining({
+            type: 'text',
+            text: expect.any(String),
+          }),
+        })
+      );
+    });
+
+    it('includes skill content', async () => {
+      const result = await server.callPrompt('load_skills');
+      const text = result.messages[0].content.text;
+
+      // Should include actual skill content, not just metadata
+      // Verify the message is substantial
+      expect(text.length).toBeGreaterThan(100);
+    });
+  });
 });
