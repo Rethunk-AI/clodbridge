@@ -3,7 +3,7 @@
  * Tests that the server is created successfully with proper reader integration.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
@@ -20,6 +20,7 @@ describe('createServer integration', () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     await rm(testDir, { recursive: true, force: true });
   });
 
@@ -197,29 +198,19 @@ describe('createServer integration', () => {
       '---\ndescription: Valid\n---\nContent'
     );
 
-    const stderrSpy = {
-      calls: [] as string[],
-    };
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
 
-    const originalWrite = process.stderr.write;
-    process.stderr.write = ((msg: string) => {
-      stderrSpy.calls.push(msg);
-      return true;
-    }) as any;
+    // Should not throw despite malformed file
+    const server = await createServer(testDir);
 
-    try {
-      // Should not throw despite malformed file
-      const server = await createServer(testDir);
+    expect(server).toBeDefined();
 
-      expect(server).toBeDefined();
+    // Error should have been logged
+    expect(
+      stderrSpy.mock.calls.some(([msg]) => String(msg).includes('Failed to parse'))
+    ).toBe(true);
 
-      // Error should have been logged
-      expect(
-        stderrSpy.calls.some((msg) => msg.includes('Failed to parse'))
-      ).toBe(true);
-    } finally {
-      process.stderr.write = originalWrite;
-    }
+    stderrSpy.mockRestore();
   });
 
   it('reader supports hot reload mechanism', async () => {

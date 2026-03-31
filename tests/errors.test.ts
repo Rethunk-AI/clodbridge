@@ -22,6 +22,7 @@ describe('Error Handling', () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     // Restore file permissions before cleanup
     try {
       await chmod(path.join(testDir, '.cursor', 'rules'), 0o755);
@@ -55,35 +56,25 @@ description: Valid rule
 Content`
       );
 
-      const stderrSpy = {
-        calls: [] as string[],
-      };
+      const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
 
-      const originalWrite = process.stderr.write;
-      process.stderr.write = ((msg: string) => {
-        stderrSpy.calls.push(msg);
-        return true;
-      }) as any;
+      const rules = await loadAllRules(testDir);
 
-      try {
-        const rules = await loadAllRules(testDir);
+      // Valid rule should load
+      expect(rules.has('good-rule')).toBe(true);
 
-        // Valid rule should load
-        expect(rules.has('good-rule')).toBe(true);
+      // Invalid rule should be skipped
+      expect(rules.has('bad-yaml')).toBe(false);
 
-        // Invalid rule should be skipped
-        expect(rules.has('bad-yaml')).toBe(false);
+      // Error should be logged
+      expect(stderrSpy.mock.calls.some(([msg]) => String(msg).includes('Failed to parse'))).toBe(
+        true
+      );
 
-        // Error should be logged
-        expect(stderrSpy.calls.some((msg) => msg.includes('Failed to parse'))).toBe(
-          true
-        );
+      // Should not crash the process
+      expect(rules.size).toBe(1);
 
-        // Should not crash the process
-        expect(rules.size).toBe(1);
-      } finally {
-        process.stderr.write = originalWrite;
-      }
+      stderrSpy.mockRestore();
     });
 
     it('skips file with bad indentation and continues loading', async () => {
@@ -108,27 +99,17 @@ description: Good rule
 Content`
       );
 
-      const stderrSpy = {
-        calls: [] as string[],
-      };
+      const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
 
-      const originalWrite = process.stderr.write;
-      process.stderr.write = ((msg: string) => {
-        stderrSpy.calls.push(msg);
-        return true;
-      }) as any;
+      const rules = await loadAllRules(testDir);
 
-      try {
-        const rules = await loadAllRules(testDir);
+      // At least the good rule should load
+      expect(rules.has('good')).toBe(true);
 
-        // At least the good rule should load
-        expect(rules.has('good')).toBe(true);
+      // Total rules loaded (good + possibly recovered bad ones)
+      expect(rules.size).toBeGreaterThanOrEqual(1);
 
-        // Total rules loaded (good + possibly recovered bad ones)
-        expect(rules.size).toBeGreaterThanOrEqual(1);
-      } finally {
-        process.stderr.write = originalWrite;
-      }
+      stderrSpy.mockRestore();
     });
   });
 

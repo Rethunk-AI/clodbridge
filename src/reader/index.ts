@@ -181,6 +181,41 @@ export async function createCursorReader(
 
   let _store = await loadAll();
 
+  // Reload guard: prevents concurrent reloads from interleaving.
+  // If a reload is requested while one is in-flight, we queue one
+  // follow-up reload (to capture latest changes) but don't stack more.
+  let _reloadInFlight: Promise<void> | null = null;
+  let _reloadQueued = false;
+
+  async function guardedReload(
+    reloadFn: () => Promise<void>
+  ): Promise<void> {
+    if (_reloadInFlight) {
+      // A reload is already running — queue a follow-up
+      _reloadQueued = true;
+      return;
+    }
+
+    _reloadInFlight = (async () => {
+      await reloadFn();
+      _reloadInFlight = null;
+
+      // If another change came in during reload, run one more
+      if (_reloadQueued) {
+        _reloadQueued = false;
+        await guardedReload(reloadFn);
+      }
+    })();
+
+    await _reloadInFlight;
+  }
+
+  function notifyWatchers(): void {
+    for (const callback of onChangeCallbacks) {
+      callback();
+    }
+  }
+
   // Create the reader object
   const reader: CursorReader = {
     get store() {
@@ -189,11 +224,10 @@ export async function createCursorReader(
     projectRoot,
 
     async reload() {
-      _store = await loadAll();
-      // Notify all watchers
-      for (const callback of onChangeCallbacks) {
-        callback();
-      }
+      await guardedReload(async () => {
+        _store = await loadAll();
+      });
+      notifyWatchers();
     },
 
     watch(onChange: () => void): () => void {
@@ -204,18 +238,12 @@ export async function createCursorReader(
       if (!stopWatcher) {
         const handleFileChange = (filePath: string) => {
           const collection = getCollectionType(filePath, cursorDir);
-          const reloadPromise = collection
-            ? loaders[collection]()
-            : loadAll().then((store) => {
-                _store = store;
-              });
+          const reloadFn = collection
+            ? loaders[collection]
+            : async () => { _store = await loadAll(); };
 
-          reloadPromise
-            .then(() => {
-              for (const callback of onChangeCallbacks) {
-                callback();
-              }
-            })
+          guardedReload(reloadFn)
+            .then(notifyWatchers)
             .catch((err) => {
               process.stderr.write(
                 `[clodbridge] Error reloading files: ${

@@ -6,7 +6,7 @@
 import matter from 'gray-matter';
 import micromatch from 'micromatch';
 import path from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat, open } from 'node:fs/promises';
 import type {
   CursorRule,
   CursorSkill,
@@ -28,25 +28,31 @@ const FILE_SIZE_TRUNCATE_BYTES = 1 * 1024 * 1024;
  */
 async function readFileWithSizeCheck(filePath: string): Promise<string> {
   const fileStat = await stat(filePath);
-  const fileSize = fileStat.size;
 
-  if (fileSize > FILE_SIZE_WARN_BYTES) {
+  if (fileStat.size > FILE_SIZE_WARN_BYTES) {
     process.stderr.write(
-      `[clodbridge] Warning: File "${filePath}" is ${(fileSize / 1024 / 1024).toFixed(1)}MB which may cause memory pressure\n`
+      `[clodbridge] Warning: File "${filePath}" is ${(fileStat.size / 1024 / 1024).toFixed(1)}MB which may cause memory pressure\n`
     );
   }
 
-  const text = await readFile(filePath, 'utf-8');
-
-  if (text.length > FILE_SIZE_TRUNCATE_BYTES) {
-    const truncatedText = text.slice(0, FILE_SIZE_TRUNCATE_BYTES);
+  // For files exceeding the truncation limit, read only the first 1MB
+  // to avoid allocating memory for the entire file
+  if (fileStat.size > FILE_SIZE_TRUNCATE_BYTES) {
+    const buf = Buffer.alloc(FILE_SIZE_TRUNCATE_BYTES);
+    const fh = await open(filePath, 'r');
+    try {
+      await fh.read(buf, 0, FILE_SIZE_TRUNCATE_BYTES, 0);
+    } finally {
+      await fh.close();
+    }
+    const truncatedText = buf.toString('utf-8');
     process.stderr.write(
-      `[clodbridge] Warning: File "${filePath}" content truncated to 1MB (actual size: ${(text.length / 1024 / 1024).toFixed(1)}MB)\n`
+      `[clodbridge] Warning: File "${filePath}" content truncated to 1MB (actual size: ${(fileStat.size / 1024 / 1024).toFixed(1)}MB)\n`
     );
     return truncatedText + '\n\n[Content truncated: file exceeds 1MB limit]';
   }
 
-  return text;
+  return await readFile(filePath, 'utf-8');
 }
 
 /**
