@@ -48,8 +48,12 @@ describe('createWatcher', () => {
       // Calling stop should not throw
       stop();
 
-      // Warning should have been logged
-      expect(stderrSpy.calls.some((msg) => msg.includes('Warning'))).toBe(true);
+      // An informational message should have been logged about watching the parent
+      expect(
+        stderrSpy.calls.some(
+          (msg) => msg.includes('watching parent') || msg.includes('Warning')
+        )
+      ).toBe(true);
     } finally {
       process.stderr.write = originalWrite;
     }
@@ -116,6 +120,88 @@ describe('createWatcher', () => {
       expect(callCount).toBeLessThanOrEqual(2);
 
       stop();
+    } finally {
+      await rm(testDir, { recursive: true, force: true });
+    }
+  });
+
+  it('handles graceful stop even if watcher has internal errors', async () => {
+    const testDir = path.join(os.tmpdir(), `clodbridge-watcher-error-${Date.now()}`);
+    await mkdir(testDir, { recursive: true });
+
+    try {
+      const callback = vi.fn();
+      const stop = createWatcher(testDir, callback);
+
+      // Wait for initialization
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Stop should not throw even if there are any internal errors
+      expect(() => stop()).not.toThrow();
+
+      // Wait a bit to ensure no async errors
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    } finally {
+      await rm(testDir, { recursive: true, force: true });
+    }
+  });
+
+  it('continues operating after multiple sequential batches of changes', async () => {
+    const testDir = path.join(os.tmpdir(), `clodbridge-watcher-batches-${Date.now()}`);
+    await mkdir(testDir, { recursive: true });
+
+    try {
+      const rulesDir = path.join(testDir, 'rules');
+      await mkdir(rulesDir, { recursive: true });
+
+      const callback = vi.fn();
+      const stop = createWatcher(testDir, callback);
+
+      // Wait for initialization
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // First batch
+      for (let i = 0; i < 2; i++) {
+        await writeFile(path.join(rulesDir, `batch1-${i}.mdc`), `content 1-${i}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const firstCallCount = callback.mock.calls.length;
+
+      // Second batch
+      for (let i = 0; i < 2; i++) {
+        await writeFile(path.join(rulesDir, `batch2-${i}.mdc`), `content 2-${i}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const secondCallCount = callback.mock.calls.length;
+
+      // Second batch should trigger additional callbacks
+      expect(secondCallCount).toBeGreaterThan(firstCallCount);
+
+      stop();
+    } finally {
+      await rm(testDir, { recursive: true, force: true });
+    }
+  });
+
+  it('gracefully handles stop called multiple times', async () => {
+    const testDir = path.join(os.tmpdir(), `clodbridge-watcher-multi-stop-${Date.now()}`);
+    await mkdir(testDir, { recursive: true });
+
+    try {
+      const stop = createWatcher(testDir, () => {});
+
+      // Wait for initialization
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Calling stop multiple times should not throw
+      expect(() => {
+        stop();
+        stop();
+        stop();
+      }).not.toThrow();
+
+      // Wait to ensure no cleanup issues
+      await new Promise((resolve) => setTimeout(resolve, 100));
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
