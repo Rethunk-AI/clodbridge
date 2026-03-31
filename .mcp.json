@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "clodbridge": {
-      "command": "bun",
-      "args": ["/home/damon/Projects/com.github/Rethunk-Tech/clodbridge/src/index.ts"]
-    }
-  }
-}

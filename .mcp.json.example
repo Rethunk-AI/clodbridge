@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "clodbridge": {
+      "command": "node",
+      "args": ["dist/index.js"]
+    }
+  }
+}
