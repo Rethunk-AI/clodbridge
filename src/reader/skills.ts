@@ -82,8 +82,22 @@ export async function loadAllSkills(
     });
 
     return skills;
-  } catch {
-    // Directory doesn't exist or readdir failed — return empty map
+  } catch (err: unknown) {
+    if (err instanceof Error && 'code' in err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ENOENT') {
+        return new Map<string, CursorSkill>();
+      }
+      if (code === 'EACCES') {
+        process.stderr.write(
+          `[clodbridge] Warning: Cannot read ${skillsDir} — permission denied\n`
+        );
+        return new Map<string, CursorSkill>();
+      }
+    }
+    process.stderr.write(
+      `[clodbridge] Warning: Failed to read ${skillsDir}: ${err instanceof Error ? err.message : String(err)}\n`
+    );
     return new Map<string, CursorSkill>();
   }
 }
