@@ -48,16 +48,22 @@ function resolveProjectRoot(): {
   let showHelp = false;
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--help') {
+    const arg = args[i];
+    if (!arg) continue;
+
+    if (arg === '--help') {
       showHelp = true;
-    } else if (args[i] === '--project-root' && args[i + 1]) {
-      projectRoot = path.resolve(args[i + 1]);
-      i++;
-    } else if (args[i] === '--dump-always-rules') {
+    } else if (arg === '--project-root') {
+      const nextArg = args[i + 1];
+      if (nextArg) {
+        projectRoot = path.resolve(nextArg);
+        i++;
+      }
+    } else if (arg === '--dump-always-rules') {
       dumpRules = true;
-    } else if (!args[i].startsWith('--')) {
+    } else if (!arg.startsWith('--')) {
       // Positional argument: treat as project root
-      projectRoot = path.resolve(args[i]);
+      projectRoot = path.resolve(arg);
     }
   }
 

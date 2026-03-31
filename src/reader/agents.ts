@@ -23,7 +23,7 @@ export async function loadAllAgents(
   try {
     // Search for .md files directly in agents/, not recursively
     const files = readdirSync(agentsDir, { withFileTypes: false });
-    const mdFiles = micromatch(files, '*.md');
+    const mdFiles = micromatch(files as string[], '*.md');
 
     const agents = new Map<string, CursorAgent>();
 

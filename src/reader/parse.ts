@@ -50,7 +50,7 @@ export async function parseRuleFile(filePath: string): Promise<CursorRule> {
  */
 export async function parseSkillFile(filePath: string): Promise<CursorSkill> {
   const text = await readFile(filePath, 'utf-8');
-  const { data, content } = matter(text) as {
+  const { data, content } = matter(text) as unknown as {
     data: SkillFrontmatter;
     content: string;
   };
@@ -80,7 +80,7 @@ export async function parseSkillFile(filePath: string): Promise<CursorSkill> {
  */
 export async function parseAgentFile(filePath: string): Promise<CursorAgent> {
   const text = await readFile(filePath, 'utf-8');
-  const { data, content } = matter(text) as {
+  const { data, content } = matter(text) as unknown as {
     data: AgentFrontmatter;
     content: string;
   };

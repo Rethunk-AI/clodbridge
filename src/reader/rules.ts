@@ -21,7 +21,7 @@ export async function loadAllRules(
 
   try {
     const files = readdirSync(rulesDir, { withFileTypes: false });
-    const mdcFiles = micromatch(files, '*.mdc');
+    const mdcFiles = micromatch(files as string[], '*.mdc');
 
     const rules = new Map<string, CursorRule>();
 
