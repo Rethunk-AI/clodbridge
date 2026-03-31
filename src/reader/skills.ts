@@ -37,7 +37,8 @@ export async function loadAllSkills(
 
         // Security: resolve symlinks and verify target stays within projectRoot
         const resolvedSkillFile = await realpath(skillFile);
-        if (!resolvedSkillFile.startsWith(resolvedRoot + path.sep)) {
+        const relativePath = path.relative(resolvedRoot, resolvedSkillFile);
+        if (relativePath.startsWith('..')) {
           process.stderr.write(
             `[clodbridge] Warning: Skipping skill "${subdir.name}" — symlink resolves outside project root\n`
           );
