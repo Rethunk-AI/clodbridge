@@ -3,7 +3,7 @@
  * Scans .cursor/skills/ directory for named skill subdirectories.
  */
 
-import { readdir, stat } from 'node:fs/promises';
+import { readdir, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { parseSkillFile } from './parse.js';
 import type { CursorSkill } from './types.js';
@@ -25,6 +25,7 @@ export async function loadAllSkills(
 
     // Collect only valid skill entries (real dirs or symlinks pointing to dirs)
     // with a SKILL.md file present
+    const resolvedRoot = await realpath(projectRoot);
     const validEntries: Array<{ name: string; skillFile: string }> = [];
     for (const subdir of subdirs) {
       if (!subdir.isDirectory() && !subdir.isSymbolicLink()) continue;
@@ -33,6 +34,15 @@ export async function loadAllSkills(
       try {
         const s = await stat(skillFile);
         if (!s.isFile()) continue;
+
+        // Security: resolve symlinks and verify target stays within projectRoot
+        const resolvedSkillFile = await realpath(skillFile);
+        if (!resolvedSkillFile.startsWith(resolvedRoot + path.sep)) {
+          process.stderr.write(
+            `[clodbridge] Warning: Skipping skill "${subdir.name}" — symlink resolves outside project root\n`
+          );
+          continue;
+        }
       } catch {
         // SKILL.md doesn't exist or symlink is broken — skip
         continue;
