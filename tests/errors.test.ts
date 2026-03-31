@@ -394,7 +394,7 @@ Content`;
       expect(rule.mode).toBe('agent-requested');
     });
 
-    it('handles numeric globs value by skipping the file with error', async () => {
+    it('handles numeric globs value gracefully', async () => {
       const rulesDir = path.join(testDir, '.cursor', 'rules');
       await mkdir(rulesDir, { recursive: true });
 
@@ -407,24 +407,12 @@ Content`;
 
       await writeFile(path.join(rulesDir, 'numeric-globs.mdc'), ruleContent);
 
-      const stderrSpy = {
-        calls: [] as string[],
-      };
+      const rule = await parseRuleFile(path.join(rulesDir, 'numeric-globs.mdc'));
 
-      const originalWrite = process.stderr.write;
-      process.stderr.write = ((msg: string) => {
-        stderrSpy.calls.push(msg);
-        return true;
-      }) as any;
-
-      try {
-        // Numeric globs should cause parse error
-        await expect(
-          parseRuleFile(path.join(rulesDir, 'numeric-globs.mdc'))
-        ).rejects.toThrow();
-      } finally {
-        process.stderr.write = originalWrite;
-      }
+      // Numeric globs are handled gracefully: parseGlobs returns empty array for non-string/array types
+      expect(rule.name).toBe('numeric-globs');
+      expect(rule.globs).toEqual([]);
+      expect(rule.mode).toBe('agent-requested');
     });
   });
 });
