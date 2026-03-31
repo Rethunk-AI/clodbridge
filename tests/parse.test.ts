@@ -123,8 +123,29 @@ describe('parseAgentFile', () => {
   });
 
   it('defaults model to empty string if missing', async () => {
-    // This would require a fixture without model field
-    // For now, we trust the implementation handles it
+    const { writeFileSync, unlinkSync } = await import('node:fs');
+    const tempPath = path.join(fixtureRoot, '.cursor', 'agents', 'no-model-agent.md');
+
+    try {
+      // Create a temporary agent file without a model field
+      writeFileSync(
+        tempPath,
+        `---
+name: no-model-agent
+description: Agent without model field
+---
+
+# No Model Agent
+
+This agent has no model specified.`
+      );
+
+      const agent = await parseAgentFile(tempPath);
+      expect(agent.model).toBe('');
+      expect(agent.name).toBe('no-model-agent');
+    } finally {
+      unlinkSync(tempPath);
+    }
   });
 
   it('throws when file does not exist', async () => {

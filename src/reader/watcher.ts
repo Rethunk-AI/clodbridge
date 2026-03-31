@@ -4,6 +4,7 @@
  */
 
 import chokidar from 'chokidar';
+import { existsSync } from 'node:fs';
 
 /**
  * Create a file watcher for the .cursor directory.
@@ -20,6 +21,16 @@ export function createWatcher(
 ): () => void {
   let debounceTimeout: NodeJS.Timeout | null = null;
   let isStopped = false;
+
+  // Check if directory exists before watching
+  if (!existsSync(cursorDir)) {
+    process.stderr.write(
+      `[clodbridge] Warning: could not watch ${cursorDir}\n`
+    );
+    return () => {
+      // no-op
+    };
+  }
 
   try {
     const watcher = chokidar.watch(cursorDir, {
