@@ -3,7 +3,7 @@
  * Scans .cursor/rules/ directory and provides rule matching utilities.
  */
 
-import { glob } from 'node:fs/promises';
+import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import micromatch from 'micromatch';
 import { parseRuleFile } from './parse.js';
@@ -20,23 +20,19 @@ export async function loadAllRules(
   const rulesDir = path.join(projectRoot, '.cursor', 'rules');
 
   try {
-    const files = glob('*.mdc', {
-      cwd: rulesDir,
-      absolute: true,
-    });
+    const files = readdirSync(rulesDir, { withFileTypes: false });
+    const mdcFiles = micromatch(files, '*.mdc');
 
     const rules = new Map<string, CursorRule>();
 
-    for await (const filePath of files) {
+    for (const file of mdcFiles) {
       try {
-        const absolutePath = path.isAbsolute(filePath)
-          ? filePath
-          : path.join(rulesDir, filePath);
-        const rule = await parseRuleFile(absolutePath);
+        const filePath = path.join(rulesDir, file);
+        const rule = await parseRuleFile(filePath);
         rules.set(rule.name, rule);
       } catch (err) {
         process.stderr.write(
-          `[clodbridge] Failed to parse rule "${path.basename(filePath)}": ${
+          `[clodbridge] Failed to parse rule "${file}": ${
             err instanceof Error ? err.message : String(err)
           }\n`
         );
@@ -45,7 +41,7 @@ export async function loadAllRules(
 
     return rules;
   } catch {
-    // Directory doesn't exist or glob failed — return empty map
+    // Directory doesn't exist or readdir failed — return empty map
     return new Map<string, CursorRule>();
   }
 }

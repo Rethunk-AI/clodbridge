@@ -3,7 +3,8 @@
  * Scans .cursor/agents/ directory for agent definition files.
  */
 
-import { glob } from 'node:fs/promises';
+import { readdirSync } from 'node:fs';
+import micromatch from 'micromatch';
 import path from 'node:path';
 import { parseAgentFile } from './parse.js';
 import type { CursorAgent } from './types.js';
@@ -21,23 +22,19 @@ export async function loadAllAgents(
 
   try {
     // Search for .md files directly in agents/, not recursively
-    const files = glob('*.md', {
-      cwd: agentsDir,
-      absolute: true,
-    });
+    const files = readdirSync(agentsDir, { withFileTypes: false });
+    const mdFiles = micromatch(files, '*.md');
 
     const agents = new Map<string, CursorAgent>();
 
-    for await (const filePath of files) {
+    for (const file of mdFiles) {
       try {
-        const absolutePath = path.isAbsolute(filePath)
-          ? filePath
-          : path.join(agentsDir, filePath);
-        const agent = await parseAgentFile(absolutePath);
+        const filePath = path.join(agentsDir, file);
+        const agent = await parseAgentFile(filePath);
         agents.set(agent.name, agent);
       } catch (err) {
         process.stderr.write(
-          `[clodbridge] Failed to parse agent "${path.basename(filePath)}": ${
+          `[clodbridge] Failed to parse agent "${file}": ${
             err instanceof Error ? err.message : String(err)
           }\n`
         );
@@ -46,7 +43,7 @@ export async function loadAllAgents(
 
     return agents;
   } catch {
-    // Directory doesn't exist or glob failed — return empty map
+    // Directory doesn't exist or readdir failed — return empty map
     return new Map<string, CursorAgent>();
   }
 }

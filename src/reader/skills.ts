@@ -3,7 +3,8 @@
  * Scans .cursor/skills/ directory for named skill subdirectories.
  */
 
-import { glob } from 'node:fs/promises';
+import { readdirSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { parseSkillFile } from './parse.js';
 import type { CursorSkill } from './types.js';
@@ -21,32 +22,31 @@ export async function loadAllSkills(
 
   try {
     // Search for SKILL.md files one level deep: skills/*/SKILL.md
-    const files = glob('*/SKILL.md', {
-      cwd: skillsDir,
-      absolute: true,
-    });
+    const subdirs = readdirSync(skillsDir, { withFileTypes: true });
 
     const skills = new Map<string, CursorSkill>();
 
-    for await (const filePath of files) {
+    for (const subdir of subdirs) {
+      if (!subdir.isDirectory()) continue;
+
+      const skillFile = path.join(skillsDir, subdir.name, 'SKILL.md');
+      if (!existsSync(skillFile)) continue;
+
       try {
-        const absolutePath = path.isAbsolute(filePath)
-          ? filePath
-          : path.join(skillsDir, filePath);
-        const skill = await parseSkillFile(absolutePath);
+        const skill = await parseSkillFile(skillFile);
         skills.set(skill.name, skill);
       } catch (err) {
         process.stderr.write(
-          `[clodbridge] Failed to parse skill "${path.basename(
-            path.dirname(filePath)
-          )}/SKILL.md": ${err instanceof Error ? err.message : String(err)}\n`
+          `[clodbridge] Failed to parse skill "${subdir.name}/SKILL.md": ${
+            err instanceof Error ? err.message : String(err)
+          }\n`
         );
       }
     }
 
     return skills;
   } catch {
-    // Directory doesn't exist or glob failed — return empty map
+    // Directory doesn't exist or readdir failed — return empty map
     return new Map<string, CursorSkill>();
   }
 }

@@ -32,15 +32,17 @@ export async function createCursorReader(
     return { rules, skills, agents };
   }
 
-  let store = await loadAll();
+  let _store = await loadAll();
 
   // Create the reader object
   const reader: CursorReader = {
-    store,
+    get store() {
+      return _store;
+    },
     projectRoot,
 
     async reload() {
-      store = await loadAll();
+      _store = await loadAll();
       // Notify all watchers
       for (const callback of onChangeCallbacks) {
         callback();
