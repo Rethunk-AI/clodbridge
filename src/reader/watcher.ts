@@ -23,7 +23,7 @@ export function createWatcher(
 ): () => void {
   let debounceTimeout: NodeJS.Timeout | null = null;
   let isStopped = false;
-  let activeWatcher: chokidar.FSWatcher | null = null;
+  let activeWatcher: FSWatcher | null = null;
 
   const debouncedCallback = (filePath: string) => {
     if (debounceTimeout) {
@@ -59,9 +59,10 @@ export function createWatcher(
       watcher.on('add', debouncedCallback);
       watcher.on('change', debouncedCallback);
       watcher.on('unlink', debouncedCallback);
-      watcher.on('error', (err: Error) => {
+      watcher.on('error', (err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
         process.stderr.write(
-          `[clodbridge] Watcher error on ${cursorDir}: ${err.message}\n`
+          `[clodbridge] Watcher error on ${cursorDir}: ${msg}\n`
         );
       });
 
@@ -93,9 +94,10 @@ export function createWatcher(
 
       activeWatcher = parentWatcher;
 
-      parentWatcher.on('error', (err: Error) => {
+      parentWatcher.on('error', (err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
         process.stderr.write(
-          `[clodbridge] Watcher error on ${parentDir}: ${err.message}\n`
+          `[clodbridge] Watcher error on ${parentDir}: ${msg}\n`
         );
       });
 

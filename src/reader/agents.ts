@@ -31,8 +31,7 @@ export async function loadAllAgents(
     );
 
     const agents = new Map<string, CursorAgent>();
-    for (let i = 0; i < results.length; i++) {
-      const result = results[i];
+    results.forEach((result, i) => {
       if (result.status === 'fulfilled') {
         agents.set(result.value.name, result.value);
       } else {
@@ -44,7 +43,7 @@ export async function loadAllAgents(
           }\n`
         );
       }
-    }
+    });
 
     return agents;
   } catch {
