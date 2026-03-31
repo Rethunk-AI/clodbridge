@@ -12,7 +12,7 @@ Thanks for your interest in contributing! This guide will help you get started.
 ### Clone and Install
 
 ```bash
-git clone https://github.com/Rethunk-Tech/clodbridge.git
+git clone https://github.com/Rethunk-AI/clodbridge.git
 cd clodbridge
 npm install
 ```
