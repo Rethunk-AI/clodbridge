@@ -2,13 +2,17 @@
  * Tests for file watcher functionality.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { mkdir, writeFile, rm, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { createWatcher } from '../src/reader/watcher.js';
 
 describe('createWatcher', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('returns a stop function', async () => {
     const testDir = path.join(os.tmpdir(), `clodbridge-watcher-${Date.now()}`);
     await mkdir(testDir, { recursive: true });
@@ -28,15 +32,7 @@ describe('createWatcher', () => {
       `clodbridge-nonexistent-${Date.now()}`
     );
 
-    const stderrSpy = {
-      calls: [] as string[],
-    };
-
-    const originalWrite = process.stderr.write;
-    process.stderr.write = ((msg: string) => {
-      stderrSpy.calls.push(msg);
-      return true;
-    }) as any;
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
 
     try {
       const callback = vi.fn();
@@ -50,12 +46,12 @@ describe('createWatcher', () => {
 
       // An informational message should have been logged about watching the parent
       expect(
-        stderrSpy.calls.some(
-          (msg) => msg.includes('watching parent') || msg.includes('Warning')
+        stderrSpy.mock.calls.some(([msg]) =>
+          String(msg).includes('watching parent') || String(msg).includes('Warning')
         )
       ).toBe(true);
     } finally {
-      process.stderr.write = originalWrite;
+      stderrSpy.mockRestore();
     }
   });
 
