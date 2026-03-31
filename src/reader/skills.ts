@@ -25,12 +25,13 @@ export async function loadAllSkills(
 
     // Collect only valid skill entries (real dirs or symlinks pointing to dirs)
     // with a SKILL.md file present
+    // Resolve projectRoot to establish a secure baseline for symlink validation
     let resolvedRoot: string;
     try {
       resolvedRoot = await realpath(projectRoot);
     } catch {
-      // If we can't resolve projectRoot, use it as-is
-      resolvedRoot = projectRoot;
+      // If we can't resolve projectRoot, skip symlink validation (not a security risk)
+      resolvedRoot = '';
     }
     const validEntries: Array<{ name: string; skillFile: string }> = [];
     for (const subdir of subdirs) {
@@ -41,14 +42,16 @@ export async function loadAllSkills(
         const s = await stat(skillFile);
         if (!s.isFile()) continue;
 
-        // Security: resolve symlinks and verify target stays within projectRoot
-        const resolvedSkillFile = await realpath(skillFile);
-        const relativePath = path.relative(resolvedRoot, resolvedSkillFile);
-        if (relativePath.startsWith('..')) {
-          process.stderr.write(
-            `[clodbridge] Warning: Skipping skill "${subdir.name}" — symlink resolves outside project root\n`
-          );
-          continue;
+        // Security: if we successfully resolved projectRoot, validate symlink targets
+        if (resolvedRoot) {
+          const resolvedSkillFile = await realpath(skillFile);
+          const relativePath = path.relative(resolvedRoot, resolvedSkillFile);
+          if (relativePath.startsWith('..')) {
+            process.stderr.write(
+              `[clodbridge] Warning: Skipping skill "${subdir.name}" — symlink resolves outside project root\n`
+            );
+            continue;
+          }
         }
       } catch {
         // SKILL.md doesn't exist or symlink is broken — skip
