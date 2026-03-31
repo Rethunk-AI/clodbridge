@@ -1,0 +1,11 @@
+---
+description: TypeScript conventions for source files
+globs: src/**/*.ts, *.tsx
+alwaysApply: false
+---
+
+# TypeScript Style Guide
+
+This rule auto-attaches when editing TypeScript files.
+
+Enforce consistent naming, typing, and module patterns.

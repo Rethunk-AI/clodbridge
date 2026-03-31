@@ -1,0 +1,10 @@
+---
+description: A rule that always applies to the project
+alwaysApply: true
+---
+
+# Always-Apply Rule
+
+This rule is injected into every conversation for this project.
+
+It defines baseline project conventions and expectations.

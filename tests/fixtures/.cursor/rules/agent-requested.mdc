@@ -1,0 +1,10 @@
+---
+description: Advanced performance optimization patterns for complex systems
+alwaysApply: false
+---
+
+# Performance Optimization
+
+The AI can request this rule when performance is a concern.
+
+Includes caching strategies, memoization, and architectural patterns.
