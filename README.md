@@ -1,7 +1,7 @@
 # clodbridge
 
 [![MCP](https://img.shields.io/badge/MCP-Server-blue)](https://modelcontextprotocol.io)
-[![CI](https://github.com/Rethunk-Tech/clodbridge/actions/workflows/ci.yml/badge.svg)](https://github.com/Rethunk-Tech/clodbridge/actions/workflows/ci.yml)
+[![CI](https://github.com/Rethunk-AI/clodbridge/actions/workflows/ci.yml/badge.svg)](https://github.com/Rethunk-AI/clodbridge/actions/workflows/ci.yml)
 [![Node.js](https://img.shields.io/badge/Node.js-22%2B-green)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](https://www.typescriptlang.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
