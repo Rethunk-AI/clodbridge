@@ -46,7 +46,7 @@ This is always applied.`
         path.join(rulesDir, 'glob-rule.mdc'),
         `---
 description: Apply to TypeScript files
-globs: src/**/*.ts
+globs: "src/**/*.ts"
 ---
 Apply to TypeScript files.`
       );
@@ -75,7 +75,7 @@ Apply to TypeScript files.`
         path.join(rulesDir, 'test-metadata.mdc'),
         `---
 description: Test rule for metadata
-globs: src/**, tests/**
+globs: "src/**, tests/**"
 alwaysApply: false
 ---
 Rule content here.`
@@ -116,7 +116,7 @@ Content`
         path.join(rulesDir, 'auto.mdc'),
         `---
 description: Auto attach to files
-globs: src/**/*.ts
+globs: "src/**/*.ts"
 alwaysApply: false
 ---
 Content`
@@ -173,7 +173,7 @@ Content 2`
         path.join(rulesDir, 'auto.mdc'),
         `---
 description: Auto attach
-globs: src/**
+globs: "src/**"
 alwaysApply: false
 ---
 Auto content`
@@ -212,7 +212,7 @@ Always content`
         path.join(rulesDir, 'ts-rule.mdc'),
         `---
 description: TypeScript rule
-globs: src/**/*.ts
+globs: "src/**/*.ts"
 ---
 TS content`
       );
@@ -221,7 +221,7 @@ TS content`
         path.join(rulesDir, 'md-rule.mdc'),
         `---
 description: Markdown rule
-globs: **/*.md
+globs: "**/*.md"
 ---
 MD content`
       );
@@ -250,7 +250,7 @@ MD content`
         path.join(rulesDir, 'src-rule.mdc'),
         `---
 description: Source rule
-globs: src/**
+globs: "src/**"
 ---
 Content`
       );

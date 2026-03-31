@@ -43,7 +43,7 @@ Always applied content`
         path.join(rulesDir, 'ts-files.mdc'),
         `---
 description: TypeScript rule
-globs: src/**/*.ts
+globs: "src/**/*.ts"
 ---
 TypeScript content`
       );
@@ -142,7 +142,7 @@ Research capabilities`
         path.join(rulesDir, 'multi.mdc'),
         `---
 description: Multi-pattern rule
-globs: src/**/*.ts, src/**/*.tsx, lib/**/*.ts
+globs: "src/**/*.ts, src/**/*.tsx, lib/**/*.ts"
 ---
 Content`
       );
