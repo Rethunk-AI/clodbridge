@@ -29,8 +29,7 @@ export async function loadAllRules(
     );
 
     const rules = new Map<string, CursorRule>();
-    for (let i = 0; i < results.length; i++) {
-      const result = results[i];
+    results.forEach((result, i) => {
       if (result.status === 'fulfilled') {
         rules.set(result.value.name, result.value);
       } else {
@@ -42,7 +41,7 @@ export async function loadAllRules(
           }\n`
         );
       }
-    }
+    });
 
     return rules;
   } catch {
@@ -71,8 +70,9 @@ export function getApplicableRules(
   // Normalize paths once before the loop: O(F) instead of O(R×F)
   // Converts absolute paths to project-relative for glob matching
   const normalizedPaths = filePaths.map((p) => {
-    if (path.isAbsolute(p)) return path.relative(projectRoot, p);
-    return p;
+    const rel = path.isAbsolute(p) ? path.relative(projectRoot, p) : p;
+    // Normalize Windows backslashes to forward slashes for micromatch
+    return rel.split(path.sep).join('/');
   });
 
   for (const rule of rules.values()) {
