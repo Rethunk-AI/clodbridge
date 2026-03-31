@@ -3,7 +3,7 @@
  * Scans .cursor/rules/ directory and provides rule matching utilities.
  */
 
-import { readdir } from 'node:fs/promises';
+import { readdir, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { parseRuleFile } from './parse.js';
 import type { CursorRule } from './types.js';
@@ -22,9 +22,42 @@ export async function loadAllRules(
     const files = await readdir(rulesDir);
     const mdcFiles = files.filter((f) => f.endsWith('.mdc'));
 
+    // Resolve projectRoot to establish a secure baseline for symlink validation
+    let resolvedRoot: string;
+    try {
+      resolvedRoot = await realpath(projectRoot);
+    } catch {
+      // If we can't resolve projectRoot, skip symlink validation (not a security risk)
+      resolvedRoot = '';
+    }
+
+    // Filter out rules that are symlinks pointing outside projectRoot
+    const validFiles: string[] = [];
+    for (const file of mdcFiles) {
+      const fullPath = path.join(rulesDir, file);
+      try {
+        const s = await stat(fullPath);
+        // If this is a symlink and we have a resolved projectRoot, validate the target
+        if (s.isSymbolicLink() && resolvedRoot) {
+          const resolvedFile = await realpath(fullPath);
+          const relativePath = path.relative(resolvedRoot, resolvedFile);
+          if (relativePath.startsWith('..')) {
+            process.stderr.write(
+              `[clodbridge] Warning: Skipping rule "${file}" — symlink resolves outside project root\n`
+            );
+            continue;
+          }
+        }
+        validFiles.push(file);
+      } catch {
+        // stat() failed, skip this file
+        continue;
+      }
+    }
+
     // Parse all rule files in parallel for faster startup and reload
     const results = await Promise.allSettled(
-      mdcFiles.map((file) => parseRuleFile(path.join(rulesDir, file)))
+      validFiles.map((file) => parseRuleFile(path.join(rulesDir, file)))
     );
 
     const rules = new Map<string, CursorRule>();
@@ -33,7 +66,7 @@ export async function loadAllRules(
         rules.set(result.value.name, result.value);
       } else {
         process.stderr.write(
-          `[clodbridge] Failed to parse rule "${mdcFiles[i]}": ${
+          `[clodbridge] Failed to parse rule "${validFiles[i]}": ${
             result.reason instanceof Error
               ? result.reason.message
               : String(result.reason)

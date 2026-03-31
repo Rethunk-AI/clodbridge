@@ -6,6 +6,7 @@
  */
 
 import path from 'node:path';
+import { stat } from 'node:fs/promises';
 import { createCursorReader } from './reader/index.js';
 import { getAlwaysRules } from './reader/rules.js';
 import { startServer } from './server.js';
@@ -71,6 +72,36 @@ function resolveProjectRoot(): {
 }
 
 /**
+ * Validate that the project root exists and is a directory.
+ * Warns to stderr if the path doesn't exist or is not a directory.
+ */
+async function validateProjectRoot(projectRoot: string): Promise<void> {
+  try {
+    const s = await stat(projectRoot);
+    if (!s.isDirectory()) {
+      process.stderr.write(
+        `[clodbridge] Warning: Project root "${projectRoot}" exists but is not a directory\n`
+      );
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error && 'code' in err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ENOENT') {
+        process.stderr.write(
+          `[clodbridge] Warning: Project root "${projectRoot}" does not exist\n`
+        );
+        return;
+      }
+    }
+    process.stderr.write(
+      `[clodbridge] Warning: Cannot access project root "${projectRoot}": ${
+        err instanceof Error ? err.message : String(err)
+      }\n`
+    );
+  }
+}
+
+/**
  * Dump always-apply rules in Claude Code hook format to stdout.
  * Used by UserPromptSubmit hooks to inject rules before every turn.
  */
@@ -119,6 +150,9 @@ async function main(): Promise<void> {
     printHelp();
     process.exit(0);
   }
+
+  // Validate that the project root exists and is accessible
+  await validateProjectRoot(projectRoot);
 
   if (dumpRules) {
     // Dump mode for hook integration

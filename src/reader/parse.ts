@@ -74,7 +74,7 @@ export async function parseRuleFile(filePath: string): Promise<CursorRule> {
   return {
     name,
     filePath,
-    description: data.description ?? '',
+    description: String(data.description ?? ''),
     globs,
     globMatcher: globs.length > 0 ? compileGlobMatcher(globs) : null,
     alwaysApply,
@@ -117,7 +117,7 @@ export async function parseSkillFile(filePath: string): Promise<CursorSkill> {
   return {
     name: directoryName,
     filePath,
-    description: data.description ?? '',
+    description: String(data.description ?? ''),
     content,
     raw: text,
   };
@@ -136,11 +136,18 @@ export async function parseAgentFile(filePath: string): Promise<CursorAgent> {
 
   const name = path.basename(filePath, '.md');
 
+  // Warn if frontmatter name differs from filename
+  if (data.name && data.name !== name) {
+    process.stderr.write(
+      `[clodbridge] Warning: Agent frontmatter name "${data.name}" does not match filename "${name}". Using filename.\n`
+    );
+  }
+
   return {
     name,
     filePath,
-    model: data.model ?? '',
-    description: data.description ?? '',
+    model: String(data.model ?? ''),
+    description: String(data.description ?? ''),
     content,
     raw: text,
   };

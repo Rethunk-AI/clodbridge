@@ -76,6 +76,18 @@ export function createWatcher(
       watcher.on('add', debouncedCallback);
       watcher.on('change', debouncedCallback);
       watcher.on('unlink', debouncedCallback);
+      watcher.on('unlinkDir', (dirPath: string) => {
+        // If .cursor/ directory itself is deleted, switch back to watching parent
+        if (dirPath === cursorDir && !isStopped) {
+          process.stderr.write(
+            `[clodbridge] .cursor directory deleted; switching watcher back to parent: ${path.dirname(cursorDir)}\n`
+          );
+          watcher.close().catch(() => {});
+          activeWatcher = null;
+          // Switch back to watching parent for recreation
+          startParentWatcher();
+        }
+      });
       watcher.on('error', (err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         process.stderr.write(
@@ -92,16 +104,9 @@ export function createWatcher(
     }
   };
 
-  if (existsSync(cursorDir)) {
-    startCursorWatcher();
-  } else {
-    // Watch the parent directory for .cursor/ to be created
+  const startParentWatcher = () => {
     const parentDir = path.dirname(cursorDir);
     const cursorDirName = path.basename(cursorDir);
-
-    process.stderr.write(
-      `[clodbridge] .cursor directory not found; watching parent for its creation: ${parentDir}\n`
-    );
 
     try {
       const parentWatcher = chokidar.watch(parentDir, {
@@ -137,6 +142,19 @@ export function createWatcher(
         `[clodbridge] Warning: could not watch parent directory ${parentDir}: ${msg}\n`
       );
     }
+  };
+
+  if (existsSync(cursorDir)) {
+    startCursorWatcher();
+  } else {
+    // Watch the parent directory for .cursor/ to be created
+    const parentDir = path.dirname(cursorDir);
+
+    process.stderr.write(
+      `[clodbridge] .cursor directory not found; watching parent for its creation: ${parentDir}\n`
+    );
+
+    startParentWatcher();
   }
 
   return stopFn;

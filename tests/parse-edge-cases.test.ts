@@ -266,9 +266,8 @@ model: claude-opus-4-6
 # Agent`);
       const agent = await parseAgentFile(p);
 
-      // gray-matter parses 42 as a number, but description ?? '' handles it
-      // The ?? only kicks in for null/undefined, so 42 passes through as-is
-      expect(agent.description).toBe(42 as unknown as string);
+      // gray-matter parses 42 as a number, but String() coerces it to "42"
+      expect(agent.description).toBe('42');
     });
   });
 

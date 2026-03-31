@@ -99,6 +99,7 @@ Then ask Claude Code: *"Spawn the my-expert agent"* and it will appear with spec
 - `name` — Unique identifier
 - `description` — One-line summary
 - `alwaysApply` — true/false (always apply, or apply to matching files)
+  - ⚠️ **Important:** Use `alwaysApply: true` or `alwaysApply: false` — NOT `yes`, `no`, `on`, or `off`. YAML 1.2 (used by clodbridge) treats `yes` and `no` as strings, not booleans.
 - `globs` — File path patterns (if not always applied)
 
 **Examples:**

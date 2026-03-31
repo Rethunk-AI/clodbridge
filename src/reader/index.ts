@@ -193,6 +193,13 @@ export async function createCursorReader(
     if (_reloadInFlight) {
       // A reload is already running — queue a follow-up
       _reloadQueued = true;
+      // Wait for the in-flight reload to complete (including any subsequent queued reloads)
+      await _reloadInFlight;
+      // After the in-flight reload completes, it may have triggered another queued reload
+      // via guardedReload(), so check if there's a new in-flight reload and wait for it
+      if (_reloadInFlight) {
+        await _reloadInFlight;
+      }
       return;
     }
 
