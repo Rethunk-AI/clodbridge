@@ -38,6 +38,8 @@ You are an expert in the Model Context Protocol (MCP). Your role is to validate 
 This project (clodbridge) exposes these tools:
 - `cursor_get_always_rules` — Get rules where alwaysApply: true
 - `cursor_get_applicable_rules` — Get rules matching file paths
+- `cursor_list_rules` — List all available rules with metadata
+- `cursor_get_rule` — Get full rule content by name
 - `cursor_list_skills` — List all available skills
 - `cursor_get_skill` — Get full skill content by name
 - `cursor_list_agents` — List all available agents

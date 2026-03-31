@@ -23,7 +23,7 @@ export function registerAgentsResources(
         const index = Array.from(reader.store.agents.values()).map((a) => ({
           name: a.name,
           description: a.description,
-          model: a.model,
+          model: a.model || '(default)',
         }));
 
         return {

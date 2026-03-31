@@ -102,7 +102,9 @@ export async function parseAgentFile(filePath: string): Promise<CursorAgent> {
  */
 function deriveRuleMode(fm: RuleFrontmatter): RuleMode {
   const alwaysApply = Boolean(fm.alwaysApply);
-  const hasGlobs = Boolean(fm.globs?.trim());
+  const hasGlobs = Array.isArray(fm.globs)
+    ? fm.globs.length > 0
+    : Boolean(fm.globs?.trim());
 
   if (alwaysApply) {
     return 'always';

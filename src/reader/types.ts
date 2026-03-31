@@ -83,7 +83,7 @@ export interface AgentSummary {
 
 export interface RuleFrontmatter {
   description?: string;
-  globs?: string;          // raw comma-separated string from YAML
+  globs?: string | string[];  // raw string or array from YAML
   alwaysApply?: boolean;
 }
 
