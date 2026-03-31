@@ -55,20 +55,19 @@ export async function loadAllSkills(
     );
 
     const skills = new Map<string, CursorSkill>();
-    for (let i = 0; i < results.length; i++) {
-      const result = results[i];
+    results.forEach((result, i) => {
       if (result.status === 'fulfilled') {
         skills.set(result.value.name, result.value);
       } else {
         process.stderr.write(
-          `[clodbridge] Failed to parse skill "${validEntries[i].name}/SKILL.md": ${
+          `[clodbridge] Failed to parse skill "${validEntries[i]!.name}/SKILL.md": ${
             result.reason instanceof Error
               ? result.reason.message
               : String(result.reason)
           }\n`
         );
       }
-    }
+    });
 
     return skills;
   } catch {
