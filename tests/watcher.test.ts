@@ -2,23 +2,26 @@
  * Tests for file watcher functionality.
  */
 
-import { chmod, mkdir, rm, writeFile } from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createWatcher } from '../src/reader/watcher.js';
+import { chmod, mkdir, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createWatcher } from "../src/reader/watcher.js";
 
 /** Helper: wait for a specified number of milliseconds. */
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Helper: create a unique temp directory under $TMPDIR. */
 async function makeTempDir(label: string): Promise<string> {
-  const dir = path.join(os.tmpdir(), `clodbridge-watcher-${label}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
+  const dir = path.join(
+    os.tmpdir(),
+    `clodbridge-watcher-${label}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+  );
   await mkdir(dir, { recursive: true });
   return dir;
 }
 
-describe('createWatcher', () => {
+describe("createWatcher", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -27,50 +30,47 @@ describe('createWatcher', () => {
   // Original tests
   // ----------------------------------------------------------------
 
-  it('returns a stop function', async () => {
-    const testDir = await makeTempDir('ret');
+  it("returns a stop function", async () => {
+    const testDir = await makeTempDir("ret");
     try {
       const stop = createWatcher(testDir, () => {});
-      expect(typeof stop).toBe('function');
+      expect(typeof stop).toBe("function");
       stop();
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
   });
 
-  it('handles non-existent directory gracefully', async () => {
-    const nonExistentDir = path.join(
-      os.tmpdir(),
-      `clodbridge-nonexistent-${Date.now()}`
-    );
+  it("handles non-existent directory gracefully", async () => {
+    const nonExistentDir = path.join(os.tmpdir(), `clodbridge-nonexistent-${Date.now()}`);
 
-    const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
+    const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
 
     try {
       const callback = vi.fn();
       const stop = createWatcher(nonExistentDir, callback);
 
       // Should return a function even if directory doesn't exist
-      expect(typeof stop).toBe('function');
+      expect(typeof stop).toBe("function");
 
       // Calling stop should not throw
       stop();
 
       // An informational message should have been logged about watching the parent
       expect(
-        stderrSpy.mock.calls.some(([msg]) =>
-          String(msg).includes('watching parent') || String(msg).includes('Warning')
-        )
+        stderrSpy.mock.calls.some(
+          ([msg]) => String(msg).includes("watching parent") || String(msg).includes("Warning"),
+        ),
       ).toBe(true);
     } finally {
       stderrSpy.mockRestore();
     }
   });
 
-  it('stops watching when stop function is called', async () => {
-    const testDir = await makeTempDir('stop');
+  it("stops watching when stop function is called", async () => {
+    const testDir = await makeTempDir("stop");
     try {
-      const rulesDir = path.join(testDir, 'rules');
+      const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
       const callback = vi.fn();
@@ -80,7 +80,7 @@ describe('createWatcher', () => {
       stop();
       await wait(100);
 
-      await writeFile(path.join(rulesDir, 'test.mdc'), 'test content');
+      await writeFile(path.join(rulesDir, "test.mdc"), "test content");
       await wait(300);
 
       expect(callback).not.toHaveBeenCalled();
@@ -89,10 +89,10 @@ describe('createWatcher', () => {
     }
   });
 
-  it('debounces rapid file changes', async () => {
-    const testDir = await makeTempDir('debounce');
+  it("debounces rapid file changes", async () => {
+    const testDir = await makeTempDir("debounce");
     try {
-      const rulesDir = path.join(testDir, 'rules');
+      const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
       const callback = vi.fn();
@@ -114,8 +114,8 @@ describe('createWatcher', () => {
     }
   });
 
-  it('handles graceful stop even if watcher has internal errors', async () => {
-    const testDir = await makeTempDir('err');
+  it("handles graceful stop even if watcher has internal errors", async () => {
+    const testDir = await makeTempDir("err");
     try {
       const callback = vi.fn();
       const stop = createWatcher(testDir, callback);
@@ -130,10 +130,10 @@ describe('createWatcher', () => {
     }
   });
 
-  it('continues operating after multiple sequential batches of changes', async () => {
-    const testDir = await makeTempDir('batches');
+  it("continues operating after multiple sequential batches of changes", async () => {
+    const testDir = await makeTempDir("batches");
     try {
-      const rulesDir = path.join(testDir, 'rules');
+      const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
       const callback = vi.fn();
@@ -163,8 +163,8 @@ describe('createWatcher', () => {
     }
   });
 
-  it('gracefully handles stop called multiple times', async () => {
-    const testDir = await makeTempDir('multi-stop');
+  it("gracefully handles stop called multiple times", async () => {
+    const testDir = await makeTempDir("multi-stop");
     try {
       const stop = createWatcher(testDir, () => {});
 
@@ -186,10 +186,10 @@ describe('createWatcher', () => {
   // Edge case: .cursor/ directory deleted and recreated
   // ----------------------------------------------------------------
 
-  describe('directory deletion and recreation', () => {
-    it('detects file changes after watched directory is deleted and recreated', async () => {
-      const testDir = await makeTempDir('del-recreate');
-      const rulesDir = path.join(testDir, 'rules');
+  describe("directory deletion and recreation", () => {
+    it("detects file changes after watched directory is deleted and recreated", async () => {
+      const testDir = await makeTempDir("del-recreate");
+      const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
       const callback = vi.fn();
@@ -199,7 +199,7 @@ describe('createWatcher', () => {
         await wait(150);
 
         // Write a file so we know the watcher is alive
-        await writeFile(path.join(rulesDir, 'before.mdc'), 'before');
+        await writeFile(path.join(rulesDir, "before.mdc"), "before");
         await wait(300);
         const countBefore = callback.mock.calls.length;
         expect(countBefore).toBeGreaterThanOrEqual(1);
@@ -210,7 +210,7 @@ describe('createWatcher', () => {
 
         // Recreate the directory and add a file
         await mkdir(rulesDir, { recursive: true });
-        await writeFile(path.join(rulesDir, 'after.mdc'), 'after');
+        await writeFile(path.join(rulesDir, "after.mdc"), "after");
         await wait(400);
 
         // The watcher may or may not detect changes after deletion+recreation.
@@ -230,13 +230,13 @@ describe('createWatcher', () => {
   // Edge case: filesystem becomes read-only during watching
   // ----------------------------------------------------------------
 
-  describe('permission changes during watching', () => {
-    it('survives when watched directory permissions are revoked', async () => {
-      const testDir = await makeTempDir('perm-revoke');
-      const rulesDir = path.join(testDir, 'rules');
+  describe("permission changes during watching", () => {
+    it("survives when watched directory permissions are revoked", async () => {
+      const testDir = await makeTempDir("perm-revoke");
+      const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
-      const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
+      const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
       const callback = vi.fn();
       const stop = createWatcher(testDir, callback);
 
@@ -244,7 +244,7 @@ describe('createWatcher', () => {
         await wait(150);
 
         // Write a file first to confirm watcher is working
-        await writeFile(path.join(rulesDir, 'initial.mdc'), 'initial');
+        await writeFile(path.join(rulesDir, "initial.mdc"), "initial");
         await wait(300);
         expect(callback.mock.calls.length).toBeGreaterThanOrEqual(1);
 
@@ -267,12 +267,12 @@ describe('createWatcher', () => {
       }
     });
 
-    it('survives when parent directory permissions are temporarily revoked', async () => {
-      const testDir = await makeTempDir('parent-perm');
-      const rulesDir = path.join(testDir, 'rules');
+    it("survives when parent directory permissions are temporarily revoked", async () => {
+      const testDir = await makeTempDir("parent-perm");
+      const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
-      const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
+      const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
       const callback = vi.fn();
       const stop = createWatcher(testDir, callback);
 
@@ -288,7 +288,7 @@ describe('createWatcher', () => {
         await wait(200);
 
         // Write a new file to see if watcher recovers
-        await writeFile(path.join(rulesDir, 'recovered.mdc'), 'recovered');
+        await writeFile(path.join(rulesDir, "recovered.mdc"), "recovered");
         await wait(300);
 
         // Stop should be clean regardless
@@ -306,23 +306,21 @@ describe('createWatcher', () => {
   // Edge case: watcher initialized before .cursor/ exists
   // ----------------------------------------------------------------
 
-  describe('late directory creation', () => {
-    it('detects .cursor/ creation and triggers onChange', async () => {
+  describe("late directory creation", () => {
+    it("detects .cursor/ creation and triggers onChange", async () => {
       // Create a parent dir but NOT the .cursor dir itself
-      const parentDir = await makeTempDir('late-create');
-      const cursorDir = path.join(parentDir, '.cursor');
+      const parentDir = await makeTempDir("late-create");
+      const cursorDir = path.join(parentDir, ".cursor");
 
-      const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
+      const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
       const callback = vi.fn();
       const stop = createWatcher(cursorDir, callback);
 
       try {
         // Should be watching parent for .cursor/ creation
-        expect(
-          stderrSpy.mock.calls.some(([msg]) =>
-            String(msg).includes('watching parent')
-          )
-        ).toBe(true);
+        expect(stderrSpy.mock.calls.some(([msg]) => String(msg).includes("watching parent"))).toBe(
+          true,
+        );
 
         await wait(200);
 
@@ -332,17 +330,15 @@ describe('createWatcher', () => {
 
         // The watcher should have switched and triggered onChange
         expect(
-          stderrSpy.mock.calls.some(([msg]) =>
-            String(msg).includes('switching watcher')
-          )
+          stderrSpy.mock.calls.some(([msg]) => String(msg).includes("switching watcher")),
         ).toBe(true);
         expect(callback).toHaveBeenCalled();
 
         // Now add a file and verify the new watcher picks it up
         callback.mockClear();
-        const rulesDir = path.join(cursorDir, 'rules');
+        const rulesDir = path.join(cursorDir, "rules");
         await mkdir(rulesDir, { recursive: true });
-        await writeFile(path.join(rulesDir, 'new-rule.mdc'), 'content');
+        await writeFile(path.join(rulesDir, "new-rule.mdc"), "content");
         await wait(400);
 
         expect(callback.mock.calls.length).toBeGreaterThanOrEqual(1);
@@ -353,11 +349,11 @@ describe('createWatcher', () => {
       }
     });
 
-    it('does not trigger on unrelated directory creation in parent', async () => {
-      const parentDir = await makeTempDir('unrelated-dir');
-      const cursorDir = path.join(parentDir, '.cursor');
+    it("does not trigger on unrelated directory creation in parent", async () => {
+      const parentDir = await makeTempDir("unrelated-dir");
+      const cursorDir = path.join(parentDir, ".cursor");
 
-      const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
+      const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
       const callback = vi.fn();
       const stop = createWatcher(cursorDir, callback);
 
@@ -365,7 +361,7 @@ describe('createWatcher', () => {
         await wait(200);
 
         // Create a directory that is NOT .cursor
-        await mkdir(path.join(parentDir, 'not-cursor'), { recursive: true });
+        await mkdir(path.join(parentDir, "not-cursor"), { recursive: true });
         await wait(400);
 
         // Callback should NOT have been called
@@ -373,9 +369,7 @@ describe('createWatcher', () => {
 
         // No "switching watcher" message
         expect(
-          stderrSpy.mock.calls.some(([msg]) =>
-            String(msg).includes('switching watcher')
-          )
+          stderrSpy.mock.calls.some(([msg]) => String(msg).includes("switching watcher")),
         ).toBe(false);
       } finally {
         stop();
@@ -389,10 +383,10 @@ describe('createWatcher', () => {
   // Edge case: multiple rapid add/delete cycles on same file
   // ----------------------------------------------------------------
 
-  describe('rapid add/delete cycles', () => {
-    it('handles rapid create-delete-create cycles on the same file', async () => {
-      const testDir = await makeTempDir('rapid-cycle');
-      const rulesDir = path.join(testDir, 'rules');
+  describe("rapid add/delete cycles", () => {
+    it("handles rapid create-delete-create cycles on the same file", async () => {
+      const testDir = await makeTempDir("rapid-cycle");
+      const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
       const callback = vi.fn();
@@ -401,14 +395,14 @@ describe('createWatcher', () => {
       try {
         await wait(150);
 
-        const filePath = path.join(rulesDir, 'flapping.mdc');
+        const filePath = path.join(rulesDir, "flapping.mdc");
 
         // Rapid create/delete/create cycle
-        await writeFile(filePath, 'v1');
+        await writeFile(filePath, "v1");
         await rm(filePath, { force: true });
-        await writeFile(filePath, 'v2');
+        await writeFile(filePath, "v2");
         await rm(filePath, { force: true });
-        await writeFile(filePath, 'v3');
+        await writeFile(filePath, "v3");
 
         await wait(400);
 
@@ -418,7 +412,7 @@ describe('createWatcher', () => {
 
         // Verify all calls received valid string file paths
         for (const call of callback.mock.calls) {
-          expect(typeof call[0]).toBe('string');
+          expect(typeof call[0]).toBe("string");
         }
       } finally {
         stop();
@@ -426,9 +420,9 @@ describe('createWatcher', () => {
       }
     });
 
-    it('handles deleting a file that was never fully written', async () => {
-      const testDir = await makeTempDir('del-before-write');
-      const rulesDir = path.join(testDir, 'rules');
+    it("handles deleting a file that was never fully written", async () => {
+      const testDir = await makeTempDir("del-before-write");
+      const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
       const callback = vi.fn();
@@ -437,10 +431,10 @@ describe('createWatcher', () => {
       try {
         await wait(150);
 
-        const filePath = path.join(rulesDir, 'ephemeral.mdc');
+        const filePath = path.join(rulesDir, "ephemeral.mdc");
 
         // Create and immediately delete
-        await writeFile(filePath, 'gone');
+        await writeFile(filePath, "gone");
         await rm(filePath, { force: true });
 
         await wait(400);
@@ -458,13 +452,13 @@ describe('createWatcher', () => {
   // Edge case: watcher resilience after file-level errors
   // ----------------------------------------------------------------
 
-  describe('watcher resilience', () => {
-    it('continues watching after one file triggers an error event', async () => {
-      const testDir = await makeTempDir('resilience');
-      const rulesDir = path.join(testDir, 'rules');
+  describe("watcher resilience", () => {
+    it("continues watching after one file triggers an error event", async () => {
+      const testDir = await makeTempDir("resilience");
+      const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
-      const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
+      const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
       const callback = vi.fn();
       const stop = createWatcher(testDir, callback);
 
@@ -472,7 +466,7 @@ describe('createWatcher', () => {
         await wait(150);
 
         // Create a normal file to verify watcher is alive
-        await writeFile(path.join(rulesDir, 'good.mdc'), 'good');
+        await writeFile(path.join(rulesDir, "good.mdc"), "good");
         await wait(300);
         expect(callback.mock.calls.length).toBeGreaterThanOrEqual(1);
 
@@ -480,7 +474,7 @@ describe('createWatcher', () => {
         const countAfterFirst = callback.mock.calls.length;
 
         // Create another file -- watcher should still fire
-        await writeFile(path.join(rulesDir, 'good2.mdc'), 'good2');
+        await writeFile(path.join(rulesDir, "good2.mdc"), "good2");
         await wait(300);
 
         expect(callback.mock.calls.length).toBeGreaterThan(countAfterFirst);
@@ -491,10 +485,10 @@ describe('createWatcher', () => {
       }
     });
 
-    it('error handler on watcher logs to stderr and does not crash', async () => {
-      const testDir = await makeTempDir('err-handler');
+    it("error handler on watcher logs to stderr and does not crash", async () => {
+      const testDir = await makeTempDir("err-handler");
 
-      const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
+      const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
       const callback = vi.fn();
       const stop = createWatcher(testDir, callback);
 
@@ -516,11 +510,11 @@ describe('createWatcher', () => {
   // Edge case: per-collection debouncing
   // ----------------------------------------------------------------
 
-  describe('per-collection debouncing', () => {
-    it('fires separate callbacks for changes in different collections', async () => {
-      const testDir = await makeTempDir('per-collection');
-      const rulesDir = path.join(testDir, 'rules');
-      const agentsDir = path.join(testDir, 'agents');
+  describe("per-collection debouncing", () => {
+    it("fires separate callbacks for changes in different collections", async () => {
+      const testDir = await makeTempDir("per-collection");
+      const rulesDir = path.join(testDir, "rules");
+      const agentsDir = path.join(testDir, "agents");
       await mkdir(rulesDir, { recursive: true });
       await mkdir(agentsDir, { recursive: true });
 
@@ -534,8 +528,8 @@ describe('createWatcher', () => {
         await wait(150);
 
         // Write to both collections nearly simultaneously
-        await writeFile(path.join(rulesDir, 'rule.mdc'), 'rule content');
-        await writeFile(path.join(agentsDir, 'agent.md'), 'agent content');
+        await writeFile(path.join(rulesDir, "rule.mdc"), "rule content");
+        await writeFile(path.join(agentsDir, "agent.md"), "agent content");
 
         await wait(400);
 
@@ -544,8 +538,8 @@ describe('createWatcher', () => {
         expect(callback.mock.calls.length).toBeGreaterThanOrEqual(2);
 
         // Verify we got paths from both collections
-        const hasRulePath = callbackPaths.some((p) => p.includes('rules'));
-        const hasAgentPath = callbackPaths.some((p) => p.includes('agents'));
+        const hasRulePath = callbackPaths.some((p) => p.includes("rules"));
+        const hasAgentPath = callbackPaths.some((p) => p.includes("agents"));
         expect(hasRulePath).toBe(true);
         expect(hasAgentPath).toBe(true);
       } finally {
@@ -554,10 +548,10 @@ describe('createWatcher', () => {
       }
     });
 
-    it('debounces within a single collection but not across collections', async () => {
-      const testDir = await makeTempDir('cross-collection');
-      const rulesDir = path.join(testDir, 'rules');
-      const skillsDir = path.join(testDir, 'skills');
+    it("debounces within a single collection but not across collections", async () => {
+      const testDir = await makeTempDir("cross-collection");
+      const rulesDir = path.join(testDir, "rules");
+      const skillsDir = path.join(testDir, "skills");
       await mkdir(rulesDir, { recursive: true });
       await mkdir(skillsDir, { recursive: true });
 
@@ -573,7 +567,7 @@ describe('createWatcher', () => {
         }
 
         // One write in skills (separate debounce timer)
-        await writeFile(path.join(skillsDir, 'skill.md'), 'skill');
+        await writeFile(path.join(skillsDir, "skill.md"), "skill");
 
         await wait(400);
 
@@ -590,10 +584,10 @@ describe('createWatcher', () => {
   // Edge case: files outside known collections
   // ----------------------------------------------------------------
 
-  describe('files outside known collections', () => {
-    it('fires callback for files in unknown subdirectories', async () => {
-      const testDir = await makeTempDir('unknown-subdir');
-      const otherDir = path.join(testDir, 'other');
+  describe("files outside known collections", () => {
+    it("fires callback for files in unknown subdirectories", async () => {
+      const testDir = await makeTempDir("unknown-subdir");
+      const otherDir = path.join(testDir, "other");
       await mkdir(otherDir, { recursive: true });
 
       const callback = vi.fn();
@@ -602,7 +596,7 @@ describe('createWatcher', () => {
       try {
         await wait(150);
 
-        await writeFile(path.join(otherDir, 'random.txt'), 'data');
+        await writeFile(path.join(otherDir, "random.txt"), "data");
         await wait(400);
 
         // Should still fire (classified as _other collection key)
@@ -613,8 +607,8 @@ describe('createWatcher', () => {
       }
     });
 
-    it('fires callback for files directly in the cursor dir', async () => {
-      const testDir = await makeTempDir('root-file');
+    it("fires callback for files directly in the cursor dir", async () => {
+      const testDir = await makeTempDir("root-file");
 
       const callback = vi.fn();
       const stop = createWatcher(testDir, callback);
@@ -622,7 +616,7 @@ describe('createWatcher', () => {
       try {
         await wait(150);
 
-        await writeFile(path.join(testDir, 'config.json'), '{}');
+        await writeFile(path.join(testDir, "config.json"), "{}");
         await wait(400);
 
         expect(callback.mock.calls.length).toBeGreaterThanOrEqual(1);

@@ -3,52 +3,47 @@
  * Resources provide read-only access to agent definitions via URIs.
  */
 
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { CursorReader } from '../reader/index.js';
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { CursorReader } from "../reader/index.js";
 
 /**
  * Register agent resources: cursor://agents and cursor://agents/{name}
  */
-export function registerAgentsResources(
-  server: McpServer,
-  reader: CursorReader
-): void {
+export function registerAgentsResources(server: McpServer, reader: CursorReader): void {
   // Index resource: list all agents
   server.resource(
-    'cursor-agents-index',
-    'cursor://agents',
-    { mimeType: 'application/json' },
+    "cursor-agents-index",
+    "cursor://agents",
+    { mimeType: "application/json" },
     async (uri) => {
       try {
         return {
           contents: [
             {
               uri: uri.toString(),
-              mimeType: 'application/json',
+              mimeType: "application/json",
               text: JSON.stringify(reader.store.summaries.agentSummaries, null, 2),
             },
           ],
         };
       } catch (err) {
         throw new Error(
-          `Failed to generate agents index: ${
-            err instanceof Error ? err.message : String(err)
-          }`
+          `Failed to generate agents index: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
-    }
+    },
   );
 
   // Per-agent resource: cursor://agents/{name}
   // params.name extracted from URI template
   server.resource(
-    'cursor-agent',
-    'cursor://agents/{name}',
+    "cursor-agent",
+    "cursor://agents/{name}",
     async (uri, params: Record<string, unknown>) => {
       try {
-        const name = String(params.name ?? '').trim();
+        const name = String(params.name ?? "").trim();
         if (!name) {
-          throw new Error('Agent name parameter is required');
+          throw new Error("Agent name parameter is required");
         }
 
         const agent = reader.store.agents.get(name);
@@ -61,18 +56,14 @@ export function registerAgentsResources(
           contents: [
             {
               uri: uri.toString(),
-              mimeType: 'text/markdown',
+              mimeType: "text/markdown",
               text: agent.raw,
             },
           ],
         };
       } catch (err) {
-        throw new Error(
-          `Failed to get agent: ${
-            err instanceof Error ? err.message : String(err)
-          }`
-        );
+        throw new Error(`Failed to get agent: ${err instanceof Error ? err.message : String(err)}`);
       }
-    }
+    },
   );
 }

@@ -3,11 +3,11 @@
  * Generates large fixture sets and verifies load/reload times stay within bounds.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { mkdir, writeFile, rm } from 'node:fs/promises';
-import path from 'node:path';
-import os from 'node:os';
-import { createCursorReader } from '../src/reader/index.js';
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { mkdir, writeFile, rm } from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
+import { createCursorReader } from "../src/reader/index.js";
 
 const RULE_COUNT = 100;
 const SKILL_COUNT = 50;
@@ -23,10 +23,10 @@ let rulesDir: string;
 let skillsDir: string;
 let agentsDir: string;
 
-function ruleContent(i: number, size: 'normal' | 'large' = 'normal'): string {
+function ruleContent(i: number, size: "normal" | "large" = "normal"): string {
   const body =
-    size === 'large'
-      ? 'x'.repeat(512 * 1024) // 512KB
+    size === "large"
+      ? "x".repeat(512 * 1024) // 512KB
       : `Rule ${i} content with some markdown.\n\n## Section\n\nDetails here.`;
   return `---
 description: "Rule ${i} description"
@@ -68,12 +68,12 @@ You are an expert in area ${i}.
 - Capability B`;
 }
 
-describe('Performance', () => {
+describe("Performance", () => {
   beforeAll(async () => {
     testDir = path.join(os.tmpdir(), `clodbridge-perf-${Date.now()}`);
-    rulesDir = path.join(testDir, '.cursor', 'rules');
-    skillsDir = path.join(testDir, '.cursor', 'skills');
-    agentsDir = path.join(testDir, '.cursor', 'agents');
+    rulesDir = path.join(testDir, ".cursor", "rules");
+    skillsDir = path.join(testDir, ".cursor", "skills");
+    agentsDir = path.join(testDir, ".cursor", "agents");
 
     await mkdir(rulesDir, { recursive: true });
     await mkdir(agentsDir, { recursive: true });
@@ -81,10 +81,8 @@ describe('Performance', () => {
     // Create rules (including a few large ones)
     const ruleWrites = [];
     for (let i = 0; i < RULE_COUNT; i++) {
-      const size = i < 3 ? 'large' : 'normal';
-      ruleWrites.push(
-        writeFile(path.join(rulesDir, `rule-${i}.mdc`), ruleContent(i, size))
-      );
+      const size = i < 3 ? "large" : "normal";
+      ruleWrites.push(writeFile(path.join(rulesDir, `rule-${i}.mdc`), ruleContent(i, size)));
     }
 
     // Create skills (each in its own subdirectory)
@@ -92,17 +90,13 @@ describe('Performance', () => {
     for (let i = 0; i < SKILL_COUNT; i++) {
       const dir = path.join(skillsDir, `skill-${i}`);
       await mkdir(dir, { recursive: true });
-      skillWrites.push(
-        writeFile(path.join(dir, 'SKILL.md'), skillContent(i))
-      );
+      skillWrites.push(writeFile(path.join(dir, "SKILL.md"), skillContent(i)));
     }
 
     // Create agents
     const agentWrites = [];
     for (let i = 0; i < AGENT_COUNT; i++) {
-      agentWrites.push(
-        writeFile(path.join(agentsDir, `agent-${i}.md`), agentContent(i))
-      );
+      agentWrites.push(writeFile(path.join(agentsDir, `agent-${i}.md`), agentContent(i)));
     }
 
     await Promise.all([...ruleWrites, ...skillWrites, ...agentWrites]);
@@ -119,7 +113,7 @@ describe('Performance', () => {
 
     process.stderr.write(
       `[perf] Initial load: ${elapsed.toFixed(0)}ms ` +
-      `(${reader.store.rules.size} rules, ${reader.store.skills.size} skills, ${reader.store.agents.size} agents)\n`
+        `(${reader.store.rules.size} rules, ${reader.store.skills.size} skills, ${reader.store.agents.size} agents)\n`,
     );
 
     expect(reader.store.rules.size).toBe(RULE_COUNT);
@@ -128,7 +122,7 @@ describe('Performance', () => {
     expect(elapsed).toBeLessThan(MAX_INITIAL_LOAD_MS);
   });
 
-  it('summary caches are populated correctly at scale', async () => {
+  it("summary caches are populated correctly at scale", async () => {
     const reader = await createCursorReader(testDir);
 
     expect(reader.store.summaries.ruleSummaries).toHaveLength(RULE_COUNT);
@@ -148,36 +142,31 @@ describe('Performance', () => {
     const reader = await createCursorReader(testDir);
 
     // Add one more rule
-    await writeFile(
-      path.join(rulesDir, 'rule-new.mdc'),
-      ruleContent(999)
-    );
+    await writeFile(path.join(rulesDir, "rule-new.mdc"), ruleContent(999));
 
     const start = performance.now();
     await reader.reload();
     const elapsed = performance.now() - start;
 
-    process.stderr.write(
-      `[perf] Full reload: ${elapsed.toFixed(0)}ms\n`
-    );
+    process.stderr.write(`[perf] Full reload: ${elapsed.toFixed(0)}ms\n`);
 
     expect(reader.store.rules.size).toBe(RULE_COUNT + 1);
     expect(elapsed).toBeLessThan(MAX_RELOAD_MS);
 
     // Clean up the extra rule
-    await rm(path.join(rulesDir, 'rule-new.mdc'));
+    await rm(path.join(rulesDir, "rule-new.mdc"));
   });
 
-  it('handles large rule files (512KB) without excessive memory', async () => {
+  it("handles large rule files (512KB) without excessive memory", async () => {
     const reader = await createCursorReader(testDir);
 
     // The first 3 rules are 512KB each
-    const largeRule = reader.store.rules.get('rule-0');
+    const largeRule = reader.store.rules.get("rule-0");
     expect(largeRule).toBeDefined();
     expect(largeRule!.content.length).toBeGreaterThan(500 * 1024);
   });
 
-  it('summary cache serializes to JSON efficiently', async () => {
+  it("summary cache serializes to JSON efficiently", async () => {
     const reader = await createCursorReader(testDir);
 
     const start = performance.now();
@@ -185,7 +174,7 @@ describe('Performance', () => {
     const elapsed = performance.now() - start;
 
     process.stderr.write(
-      `[perf] JSON.stringify ${RULE_COUNT} rule summaries: ${elapsed.toFixed(1)}ms (${(json.length / 1024).toFixed(0)}KB)\n`
+      `[perf] JSON.stringify ${RULE_COUNT} rule summaries: ${elapsed.toFixed(1)}ms (${(json.length / 1024).toFixed(0)}KB)\n`,
     );
 
     // Serializing 100 summaries should be near-instant

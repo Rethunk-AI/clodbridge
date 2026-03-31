@@ -286,12 +286,40 @@ Then ask Claude Code: *"Spawn the my-expert agent"* and it will appear with spec
     └── agent3.md
 ```
 
+## Advanced: Hook Integration Mode
+
+clodbridge can also run in **hook mode** for Claude Code's hook system. This injects always-apply rules into every Claude Code turn without requiring explicit MCP server discovery.
+
+**To use hook mode:**
+
+1. In your `.claude/settings.json`, add a `UserPromptSubmit` hook:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": "node /path/to/clodbridge --dump-always-rules"
+  }
+}
+```
+
+2. Replace `/path/to/clodbridge` with the actual path to the clodbridge CLI (e.g., `~/.npm/_npx/clodbridge@latest/bin/clodbridge.js`).
+
+3. clodbridge will now output your always-apply rules as additional context on every prompt.
+
+**When to use hook mode:**
+- You want rules applied even when the MCP server isn't running
+- You prefer hook-based injection over MCP discovery
+- You're testing rule behavior before committing
+
+**Note:** The hook must be executable and return valid JSON in the format that Claude Code expects for `hookSpecificOutput`.
+
 ## Getting Help
 
 - **How do I write a rule?** -- See the `commit-early-commit-often` rule in `.cursor/rules/` for a working example
 - **How do I structure a skill?** -- Check `.cursor/skills/` for examples
 - **How do I define an agent?** -- Look at `.cursor/agents/mcp-validator.md`
 - **How do I ask Claude Code to use my rule?** -- If it is marked `alwaysApply: true`, Claude follows it automatically. Otherwise, just mention the topic and matching rules will activate.
+- **Hook mode not working?** -- Make sure the path to clodbridge is correct and the file is executable. Run `clodbridge --help` to verify the installation.
 - **Something broken?** -- Open an issue at [github.com/Rethunk-AI/clodbridge](https://github.com/Rethunk-AI/clodbridge/issues)
 
 ## What's Next?

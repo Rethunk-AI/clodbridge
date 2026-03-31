@@ -3,10 +3,11 @@
  * Scans .cursor/skills/ directory for named skill subdirectories.
  */
 
-import { readdir, realpath, stat } from 'node:fs/promises';
-import path from 'node:path';
-import { parseSkillFile } from './parse.js';
-import type { CursorSkill } from './types.js';
+import { readdir, realpath, stat } from "node:fs/promises";
+import path from "node:path";
+import { parseSkillFile } from "./parse.js";
+import { validateSymlinkTarget } from "./symlink.js";
+import type { CursorSkill } from "./types.js";
 
 /**
  * Load all skills from .cursor/skills/ directory.
@@ -14,10 +15,8 @@ import type { CursorSkill } from './types.js';
  * Parse errors are logged to stderr and the file is skipped.
  * If the directory doesn't exist, returns an empty Map.
  */
-export async function loadAllSkills(
-  projectRoot: string
-): Promise<Map<string, CursorSkill>> {
-  const skillsDir = path.join(projectRoot, '.cursor', 'skills');
+export async function loadAllSkills(projectRoot: string): Promise<Map<string, CursorSkill>> {
+  const skillsDir = path.join(projectRoot, ".cursor", "skills");
 
   try {
     // Search for SKILL.md files one level deep: skills/*/SKILL.md
@@ -31,28 +30,20 @@ export async function loadAllSkills(
       resolvedRoot = await realpath(projectRoot);
     } catch {
       // If we can't resolve projectRoot, skip symlink validation (not a security risk)
-      resolvedRoot = '';
+      resolvedRoot = "";
     }
     const validEntries: Array<{ name: string; skillFile: string }> = [];
     for (const subdir of subdirs) {
       if (!subdir.isDirectory() && !subdir.isSymbolicLink()) continue;
 
-      const skillFile = path.join(skillsDir, subdir.name, 'SKILL.md');
+      const skillFile = path.join(skillsDir, subdir.name, "SKILL.md");
       try {
         const s = await stat(skillFile);
         if (!s.isFile()) continue;
 
         // Security: if we successfully resolved projectRoot, validate symlink targets
-        if (resolvedRoot) {
-          const resolvedSkillFile = await realpath(skillFile);
-          const relativePath = path.relative(resolvedRoot, resolvedSkillFile);
-          if (relativePath.startsWith('..')) {
-            process.stderr.write(
-              `[clodbridge] Warning: Skipping skill "${subdir.name}" — symlink resolves outside project root\n`
-            );
-            continue;
-          }
-        }
+        const isValid = await validateSymlinkTarget(skillFile, resolvedRoot, "skill", subdir.name);
+        if (!isValid) continue;
       } catch {
         // SKILL.md doesn't exist or symlink is broken — skip
         continue;
@@ -63,40 +54,38 @@ export async function loadAllSkills(
 
     // Parse all skill files in parallel for faster startup and reload
     const results = await Promise.allSettled(
-      validEntries.map(({ skillFile }) => parseSkillFile(skillFile))
+      validEntries.map(({ skillFile }) => parseSkillFile(skillFile)),
     );
 
     const skills = new Map<string, CursorSkill>();
     results.forEach((result, i) => {
-      if (result.status === 'fulfilled') {
+      if (result.status === "fulfilled") {
         skills.set(result.value.name, result.value);
       } else {
         process.stderr.write(
           `[clodbridge] Failed to parse skill "${validEntries[i]!.name}/SKILL.md": ${
-            result.reason instanceof Error
-              ? result.reason.message
-              : String(result.reason)
-          }\n`
+            result.reason instanceof Error ? result.reason.message : String(result.reason)
+          }\n`,
         );
       }
     });
 
     return skills;
   } catch (err: unknown) {
-    if (err instanceof Error && 'code' in err) {
+    if (err instanceof Error && "code" in err) {
       const code = (err as NodeJS.ErrnoException).code;
-      if (code === 'ENOENT') {
+      if (code === "ENOENT") {
         return new Map<string, CursorSkill>();
       }
-      if (code === 'EACCES') {
+      if (code === "EACCES") {
         process.stderr.write(
-          `[clodbridge] Warning: Cannot read ${skillsDir} — permission denied\n`
+          `[clodbridge] Warning: Cannot read ${skillsDir} — permission denied\n`,
         );
         return new Map<string, CursorSkill>();
       }
     }
     process.stderr.write(
-      `[clodbridge] Warning: Failed to read ${skillsDir}: ${err instanceof Error ? err.message : String(err)}\n`
+      `[clodbridge] Warning: Failed to read ${skillsDir}: ${err instanceof Error ? err.message : String(err)}\n`,
     );
     return new Map<string, CursorSkill>();
   }

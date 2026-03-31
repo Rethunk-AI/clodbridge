@@ -3,11 +3,11 @@
  * Manages loading all rules, skills, and agents, with hot-reload support.
  */
 
-import path from 'node:path';
-import { loadAllRules } from './rules.js';
-import { loadAllSkills } from './skills.js';
-import { loadAllAgents } from './agents.js';
-import { createWatcher } from './watcher.js';
+import path from "node:path";
+import { loadAllRules } from "./rules.js";
+import { loadAllSkills } from "./skills.js";
+import { loadAllAgents } from "./agents.js";
+import { createWatcher } from "./watcher.js";
 import type {
   CursorReader,
   CursorStore,
@@ -19,9 +19,11 @@ import type {
   AgentSummary,
   SummaryCache,
   PromptCache,
-} from './types.js';
+} from "./types.js";
 
-type CollectionType = 'rules' | 'skills' | 'agents';
+type CollectionType = "rules" | "skills" | "agents";
+
+const DEFAULT_MODEL_DISPLAY = "(default)";
 
 /**
  * Build cached summary arrays for all collections.
@@ -30,7 +32,7 @@ type CollectionType = 'rules' | 'skills' | 'agents';
 function buildSummaryCache(
   rules: Map<string, CursorRule>,
   skills: Map<string, CursorSkill>,
-  agents: Map<string, CursorAgent>
+  agents: Map<string, CursorAgent>,
 ): SummaryCache {
   const ruleValues = Array.from(rules.values());
 
@@ -43,24 +45,18 @@ function buildSummaryCache(
   }));
 
   const alwaysRules = ruleValues.filter((r) => r.alwaysApply);
-  const agentRequestedRules = ruleValues.filter(
-    (r) => r.mode === 'agent-requested'
-  );
+  const agentRequestedRules = ruleValues.filter((r) => r.mode === "agent-requested");
 
-  const skillSummaries: SkillSummary[] = Array.from(skills.values()).map(
-    (s) => ({
-      name: s.name,
-      description: s.description,
-    })
-  );
+  const skillSummaries: SkillSummary[] = Array.from(skills.values()).map((s) => ({
+    name: s.name,
+    description: s.description,
+  }));
 
-  const agentSummaries: AgentSummary[] = Array.from(agents.values()).map(
-    (a) => ({
-      name: a.name,
-      description: a.description,
-      model: a.model || '(default)',
-    })
-  );
+  const agentSummaries: AgentSummary[] = Array.from(agents.values()).map((a) => ({
+    name: a.name,
+    description: a.description,
+    model: a.model || DEFAULT_MODEL_DISPLAY,
+  }));
 
   return {
     ruleSummaries,
@@ -78,33 +74,34 @@ function buildSummaryCache(
 function buildPromptCache(
   summaries: SummaryCache,
   skills: Map<string, CursorSkill>,
-  agents: Map<string, CursorAgent>
+  agents: Map<string, CursorAgent>,
 ): PromptCache {
-  const ruleTexts = summaries.alwaysRules
-    .map((r) => `## ${r.name}\n\n${r.content}`)
-    .join('\n\n');
+  const ruleTexts = summaries.alwaysRules.map((r) => `## ${r.name}\n\n${r.content}`).join("\n\n");
   const rulesPrompt =
     ruleTexts.length > 0
       ? `Here are the Cursor rules for this project:\n\n${ruleTexts}`
-      : 'No always-apply Cursor rules found for this project.';
+      : "No always-apply Cursor rules found for this project.";
 
   const skillValues = Array.from(skills.values());
   const skillTexts = skillValues
     .map((s) => `## ${s.name}\n\n${s.description}\n\n${s.content}`)
-    .join('\n\n');
+    .join("\n\n");
   const skillsPrompt =
     skillTexts.length > 0
       ? `Here are the Cursor skills available for this project:\n\n${skillTexts}`
-      : 'No Cursor skills found for this project.';
+      : "No Cursor skills found for this project.";
 
   const agentValues = Array.from(agents.values());
   const agentTexts = agentValues
-    .map((a) => `## ${a.name}\n\nModel: ${a.model || '(default)'}\n\n${a.description}\n\n${a.content}`)
-    .join('\n\n');
+    .map(
+      (a) =>
+        `## ${a.name}\n\nModel: ${a.model || DEFAULT_MODEL_DISPLAY}\n\n${a.description}\n\n${a.content}`,
+    )
+    .join("\n\n");
   const agentsPrompt =
     agentTexts.length > 0
       ? `Here are the Cursor agents available for this project:\n\n${agentTexts}`
-      : 'No Cursor agents found for this project.';
+      : "No Cursor agents found for this project.";
 
   return { rulesPrompt, skillsPrompt, agentsPrompt };
 }
@@ -113,17 +110,10 @@ function buildPromptCache(
  * Determine which collection a changed file belongs to based on its path.
  * Returns undefined if the path doesn't clearly map to a single collection.
  */
-function getCollectionType(
-  filePath: string,
-  cursorDir: string
-): CollectionType | undefined {
+function getCollectionType(filePath: string, cursorDir: string): CollectionType | undefined {
   const relative = path.relative(cursorDir, filePath);
   const firstSegment = relative.split(path.sep)[0];
-  if (
-    firstSegment === 'rules' ||
-    firstSegment === 'skills' ||
-    firstSegment === 'agents'
-  ) {
+  if (firstSegment === "rules" || firstSegment === "skills" || firstSegment === "agents") {
     return firstSegment;
   }
   return undefined;
@@ -133,10 +123,8 @@ function getCollectionType(
  * Create a CursorReader instance for the given project root.
  * Loads all rules, skills, and agents from .cursor/, and sets up file watching.
  */
-export async function createCursorReader(
-  projectRoot: string
-): Promise<CursorReader> {
-  const cursorDir = path.join(projectRoot, '.cursor');
+export async function createCursorReader(projectRoot: string): Promise<CursorReader> {
+  const cursorDir = path.join(projectRoot, ".cursor");
   let stopWatcher: (() => void) | null = null;
   const onChangeCallbacks = new Set<() => void>();
 
@@ -155,11 +143,7 @@ export async function createCursorReader(
 
   // Rebuild all caches from current store state
   function rebuildCaches(): void {
-    _store.summaries = buildSummaryCache(
-      _store.rules,
-      _store.skills,
-      _store.agents
-    );
+    _store.summaries = buildSummaryCache(_store.rules, _store.skills, _store.agents);
     _store.prompts = buildPromptCache(_store.summaries, _store.skills, _store.agents);
   }
 
@@ -187,9 +171,7 @@ export async function createCursorReader(
   let _reloadInFlight: Promise<void> | null = null;
   let _reloadQueued = false;
 
-  async function guardedReload(
-    reloadFn: () => Promise<void>
-  ): Promise<void> {
+  async function guardedReload(reloadFn: () => Promise<void>): Promise<void> {
     if (_reloadInFlight) {
       // A reload is already running — queue a follow-up
       _reloadQueued = true;
@@ -204,13 +186,16 @@ export async function createCursorReader(
     }
 
     _reloadInFlight = (async () => {
-      await reloadFn();
-      _reloadInFlight = null;
+      try {
+        await reloadFn();
+      } finally {
+        _reloadInFlight = null;
 
-      // If another change came in during reload, run one more
-      if (_reloadQueued) {
-        _reloadQueued = false;
-        await guardedReload(reloadFn);
+        // If another change came in during reload, run one more
+        if (_reloadQueued) {
+          _reloadQueued = false;
+          await guardedReload(reloadFn);
+        }
       }
     })();
 
@@ -247,7 +232,9 @@ export async function createCursorReader(
           const collection = getCollectionType(filePath, cursorDir);
           const reloadFn = collection
             ? loaders[collection]
-            : async () => { _store = await loadAll(); };
+            : async () => {
+                _store = await loadAll();
+              };
 
           guardedReload(reloadFn)
             .then(notifyWatchers)
@@ -255,7 +242,7 @@ export async function createCursorReader(
               process.stderr.write(
                 `[clodbridge] Error reloading files: ${
                   err instanceof Error ? err.message : String(err)
-                }\n`
+                }\n`,
               );
             });
         };
@@ -280,4 +267,4 @@ export async function createCursorReader(
 
 // Re-export types
 export type { CursorReader, CursorStore };
-export * from './types.js';
+export * from "./types.js";

@@ -3,10 +3,10 @@
  * Converts raw file text into domain objects.
  */
 
-import matter from 'gray-matter';
-import micromatch from 'micromatch';
-import path from 'node:path';
-import { readFile, stat, open } from 'node:fs/promises';
+import matter from "gray-matter";
+import micromatch from "micromatch";
+import path from "node:path";
+import { readFile, stat, open } from "node:fs/promises";
 import type {
   CursorRule,
   CursorSkill,
@@ -15,7 +15,7 @@ import type {
   SkillFrontmatter,
   AgentFrontmatter,
   RuleMode,
-} from './types.js';
+} from "./types.js";
 
 /** Warn if a file exceeds this size (10MB) */
 const FILE_SIZE_WARN_BYTES = 10 * 1024 * 1024;
@@ -31,7 +31,7 @@ async function readFileWithSizeCheck(filePath: string): Promise<string> {
 
   if (fileStat.size > FILE_SIZE_WARN_BYTES) {
     process.stderr.write(
-      `[clodbridge] Warning: File "${filePath}" is ${(fileStat.size / 1024 / 1024).toFixed(1)}MB which may cause memory pressure\n`
+      `[clodbridge] Warning: File "${filePath}" is ${(fileStat.size / 1024 / 1024).toFixed(1)}MB which may cause memory pressure\n`,
     );
   }
 
@@ -39,20 +39,20 @@ async function readFileWithSizeCheck(filePath: string): Promise<string> {
   // to avoid allocating memory for the entire file
   if (fileStat.size > FILE_SIZE_TRUNCATE_BYTES) {
     const buf = Buffer.alloc(FILE_SIZE_TRUNCATE_BYTES);
-    const fh = await open(filePath, 'r');
+    const fh = await open(filePath, "r");
     try {
       await fh.read(buf, 0, FILE_SIZE_TRUNCATE_BYTES, 0);
     } finally {
       await fh.close();
     }
-    const truncatedText = buf.toString('utf-8');
+    const truncatedText = buf.toString("utf-8");
     process.stderr.write(
-      `[clodbridge] Warning: File "${filePath}" content truncated to 1MB (actual size: ${(fileStat.size / 1024 / 1024).toFixed(1)}MB)\n`
+      `[clodbridge] Warning: File "${filePath}" content truncated to 1MB (actual size: ${(fileStat.size / 1024 / 1024).toFixed(1)}MB)\n`,
     );
-    return truncatedText + '\n\n[Content truncated: file exceeds 1MB limit]';
+    return truncatedText + "\n\n[Content truncated: file exceeds 1MB limit]";
   }
 
-  return await readFile(filePath, 'utf-8');
+  return await readFile(filePath, "utf-8");
 }
 
 /**
@@ -66,7 +66,7 @@ export async function parseRuleFile(filePath: string): Promise<CursorRule> {
     content: string;
   };
 
-  const name = path.basename(filePath, '.mdc');
+  const name = path.basename(filePath, ".mdc");
   const globs = parseGlobs(data.globs);
   const alwaysApply = data.alwaysApply === true;
   const mode = deriveRuleMode(data);
@@ -74,7 +74,7 @@ export async function parseRuleFile(filePath: string): Promise<CursorRule> {
   return {
     name,
     filePath,
-    description: String(data.description ?? ''),
+    description: String(data.description ?? ""),
     globs,
     globMatcher: globs.length > 0 ? compileGlobMatcher(globs) : null,
     alwaysApply,
@@ -110,14 +110,14 @@ export async function parseSkillFile(filePath: string): Promise<CursorSkill> {
   // Warn if frontmatter name differs from directory name
   if (data.name && data.name !== directoryName) {
     process.stderr.write(
-      `[clodbridge] Warning: Skill frontmatter name "${data.name}" does not match directory name "${directoryName}". Using directory name.\n`
+      `[clodbridge] Warning: Skill frontmatter name "${data.name}" does not match directory name "${directoryName}". Using directory name.\n`,
     );
   }
 
   return {
     name: directoryName,
     filePath,
-    description: String(data.description ?? ''),
+    description: String(data.description ?? ""),
     content,
     raw: text,
   };
@@ -134,20 +134,20 @@ export async function parseAgentFile(filePath: string): Promise<CursorAgent> {
     content: string;
   };
 
-  const name = path.basename(filePath, '.md');
+  const name = path.basename(filePath, ".md");
 
   // Warn if frontmatter name differs from filename
   if (data.name && data.name !== name) {
     process.stderr.write(
-      `[clodbridge] Warning: Agent frontmatter name "${data.name}" does not match filename "${name}". Using filename.\n`
+      `[clodbridge] Warning: Agent frontmatter name "${data.name}" does not match filename "${name}". Using filename.\n`,
     );
   }
 
   return {
     name,
     filePath,
-    model: String(data.model ?? ''),
-    description: String(data.description ?? ''),
+    model: String(data.model ?? ""),
+    description: String(data.description ?? ""),
     content,
     raw: text,
   };
@@ -160,15 +160,15 @@ function deriveRuleMode(fm: RuleFrontmatter): RuleMode {
   const alwaysApply = fm.alwaysApply === true;
   const hasGlobs = Array.isArray(fm.globs)
     ? fm.globs.length > 0
-    : typeof fm.globs === 'string' && fm.globs.trim().length > 0;
+    : typeof fm.globs === "string" && fm.globs.trim().length > 0;
 
   if (alwaysApply) {
-    return 'always';
+    return "always";
   }
   if (hasGlobs) {
-    return 'auto-attached';
+    return "auto-attached";
   }
-  return 'agent-requested';
+  return "agent-requested";
 }
 
 /**
@@ -185,15 +185,13 @@ export function parseGlobs(raw: string | string[] | undefined): string[] {
 
   // Handle array format (if user writes YAML list syntax)
   if (Array.isArray(raw)) {
-    return raw
-      .map((s) => (typeof s === 'string' ? s.trim() : ''))
-      .filter(Boolean);
+    return raw.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean);
   }
 
   // Handle comma-separated string
-  if (typeof raw === 'string') {
+  if (typeof raw === "string") {
     return raw
-      .split(',')
+      .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
   }

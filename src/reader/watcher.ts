@@ -3,9 +3,9 @@
  * Debounces rapid file changes to avoid excessive reload calls.
  */
 
-import chokidar, { type FSWatcher } from 'chokidar';
-import { existsSync } from 'node:fs';
-import path from 'node:path';
+import chokidar, { type FSWatcher } from "chokidar";
+import { existsSync } from "node:fs";
+import path from "node:path";
 
 /**
  * Classify a changed file path into its collection based on the first
@@ -14,10 +14,10 @@ import path from 'node:path';
 function getCollectionKey(filePath: string, cursorDir: string): string {
   const relative = path.relative(cursorDir, filePath);
   const firstSegment = relative.split(path.sep)[0];
-  if (firstSegment === 'rules' || firstSegment === 'skills' || firstSegment === 'agents') {
+  if (firstSegment === "rules" || firstSegment === "skills" || firstSegment === "agents") {
     return firstSegment;
   }
-  return '_other';
+  return "_other";
 }
 
 /**
@@ -30,10 +30,7 @@ function getCollectionKey(filePath: string, cursorDir: string): string {
  * @param onChange Callback invoked when files change
  * @returns Stop function to close the watcher
  */
-export function createWatcher(
-  cursorDir: string,
-  onChange: (filePath: string) => void
-): () => void {
+export function createWatcher(cursorDir: string, onChange: (filePath: string) => void): () => void {
   const debounceTimers = new Map<string, NodeJS.Timeout>();
   let isStopped = false;
   let activeWatcher: FSWatcher | null = null;
@@ -44,12 +41,15 @@ export function createWatcher(
     if (existing) {
       clearTimeout(existing);
     }
-    debounceTimers.set(key, setTimeout(() => {
-      debounceTimers.delete(key);
-      if (!isStopped) {
-        onChange(filePath);
-      }
-    }, 200));
+    debounceTimers.set(
+      key,
+      setTimeout(() => {
+        debounceTimers.delete(key);
+        if (!isStopped) {
+          onChange(filePath);
+        }
+      }, 200),
+    );
   };
 
   const stopFn = () => {
@@ -73,14 +73,14 @@ export function createWatcher(
         persistent: false,
       });
 
-      watcher.on('add', debouncedCallback);
-      watcher.on('change', debouncedCallback);
-      watcher.on('unlink', debouncedCallback);
-      watcher.on('unlinkDir', (dirPath: string) => {
+      watcher.on("add", debouncedCallback);
+      watcher.on("change", debouncedCallback);
+      watcher.on("unlink", debouncedCallback);
+      watcher.on("unlinkDir", (dirPath: string) => {
         // If .cursor/ directory itself is deleted, switch back to watching parent
         if (dirPath === cursorDir && !isStopped) {
           process.stderr.write(
-            `[clodbridge] .cursor directory deleted; switching watcher back to parent: ${path.dirname(cursorDir)}\n`
+            `[clodbridge] .cursor directory deleted; switching watcher back to parent: ${path.dirname(cursorDir)}\n`,
           );
           watcher.close().catch(() => {});
           activeWatcher = null;
@@ -88,19 +88,15 @@ export function createWatcher(
           startParentWatcher();
         }
       });
-      watcher.on('error', (err: unknown) => {
+      watcher.on("error", (err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
-        process.stderr.write(
-          `[clodbridge] Watcher error on ${cursorDir}: ${msg}\n`
-        );
+        process.stderr.write(`[clodbridge] Watcher error on ${cursorDir}: ${msg}\n`);
       });
 
       activeWatcher = watcher;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      process.stderr.write(
-        `[clodbridge] Warning: could not watch ${cursorDir}: ${msg}\n`
-      );
+      process.stderr.write(`[clodbridge] Warning: could not watch ${cursorDir}: ${msg}\n`);
     }
   };
 
@@ -117,17 +113,15 @@ export function createWatcher(
 
       activeWatcher = parentWatcher;
 
-      parentWatcher.on('error', (err: unknown) => {
+      parentWatcher.on("error", (err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
-        process.stderr.write(
-          `[clodbridge] Watcher error on ${parentDir}: ${msg}\n`
-        );
+        process.stderr.write(`[clodbridge] Watcher error on ${parentDir}: ${msg}\n`);
       });
 
-      parentWatcher.on('addDir', (dirPath: string) => {
+      parentWatcher.on("addDir", (dirPath: string) => {
         if (path.basename(dirPath) === cursorDirName && !isStopped) {
           process.stderr.write(
-            `[clodbridge] .cursor directory created; switching watcher to ${cursorDir}\n`
+            `[clodbridge] .cursor directory created; switching watcher to ${cursorDir}\n`,
           );
           // Stop watching parent, start watching .cursor/
           parentWatcher.close().catch(() => {});
@@ -139,7 +133,7 @@ export function createWatcher(
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       process.stderr.write(
-        `[clodbridge] Warning: could not watch parent directory ${parentDir}: ${msg}\n`
+        `[clodbridge] Warning: could not watch parent directory ${parentDir}: ${msg}\n`,
       );
     }
   };
@@ -151,7 +145,7 @@ export function createWatcher(
     const parentDir = path.dirname(cursorDir);
 
     process.stderr.write(
-      `[clodbridge] .cursor directory not found; watching parent for its creation: ${parentDir}\n`
+      `[clodbridge] .cursor directory not found; watching parent for its creation: ${parentDir}\n`,
     );
 
     startParentWatcher();

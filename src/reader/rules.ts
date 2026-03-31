@@ -3,24 +3,23 @@
  * Scans .cursor/rules/ directory and provides rule matching utilities.
  */
 
-import { readdir, realpath, stat } from 'node:fs/promises';
-import path from 'node:path';
-import { parseRuleFile } from './parse.js';
-import type { CursorRule } from './types.js';
+import { readdir, realpath } from "node:fs/promises";
+import path from "node:path";
+import { parseRuleFile } from "./parse.js";
+import { validateSymlinkTarget } from "./symlink.js";
+import type { CursorRule } from "./types.js";
 
 /**
  * Load all rules from .cursor/rules/ directory.
  * Parse errors are logged to stderr and the file is skipped.
  * If the directory doesn't exist, returns an empty Map.
  */
-export async function loadAllRules(
-  projectRoot: string
-): Promise<Map<string, CursorRule>> {
-  const rulesDir = path.join(projectRoot, '.cursor', 'rules');
+export async function loadAllRules(projectRoot: string): Promise<Map<string, CursorRule>> {
+  const rulesDir = path.join(projectRoot, ".cursor", "rules");
 
   try {
     const files = await readdir(rulesDir);
-    const mdcFiles = files.filter((f) => f.endsWith('.mdc'));
+    const mdcFiles = files.filter((f) => f.endsWith(".mdc"));
 
     // Resolve projectRoot to establish a secure baseline for symlink validation
     let resolvedRoot: string;
@@ -28,69 +27,51 @@ export async function loadAllRules(
       resolvedRoot = await realpath(projectRoot);
     } catch {
       // If we can't resolve projectRoot, skip symlink validation (not a security risk)
-      resolvedRoot = '';
+      resolvedRoot = "";
     }
 
     // Filter out rules that are symlinks pointing outside projectRoot
     const validFiles: string[] = [];
     for (const file of mdcFiles) {
       const fullPath = path.join(rulesDir, file);
-      try {
-        const s = await stat(fullPath);
-        // If this is a symlink and we have a resolved projectRoot, validate the target
-        if (s.isSymbolicLink() && resolvedRoot) {
-          const resolvedFile = await realpath(fullPath);
-          const relativePath = path.relative(resolvedRoot, resolvedFile);
-          if (relativePath.startsWith('..')) {
-            process.stderr.write(
-              `[clodbridge] Warning: Skipping rule "${file}" — symlink resolves outside project root\n`
-            );
-            continue;
-          }
-        }
+      const isValid = await validateSymlinkTarget(fullPath, resolvedRoot, "rule", file);
+      if (isValid) {
         validFiles.push(file);
-      } catch {
-        // stat() failed, skip this file
-        continue;
       }
     }
 
     // Parse all rule files in parallel for faster startup and reload
     const results = await Promise.allSettled(
-      validFiles.map((file) => parseRuleFile(path.join(rulesDir, file)))
+      validFiles.map((file) => parseRuleFile(path.join(rulesDir, file))),
     );
 
     const rules = new Map<string, CursorRule>();
     results.forEach((result, i) => {
-      if (result.status === 'fulfilled') {
+      if (result.status === "fulfilled") {
         rules.set(result.value.name, result.value);
       } else {
         process.stderr.write(
           `[clodbridge] Failed to parse rule "${validFiles[i]}": ${
-            result.reason instanceof Error
-              ? result.reason.message
-              : String(result.reason)
-          }\n`
+            result.reason instanceof Error ? result.reason.message : String(result.reason)
+          }\n`,
         );
       }
     });
 
     return rules;
   } catch (err: unknown) {
-    if (err instanceof Error && 'code' in err) {
+    if (err instanceof Error && "code" in err) {
       const code = (err as NodeJS.ErrnoException).code;
-      if (code === 'ENOENT') {
+      if (code === "ENOENT") {
         return new Map<string, CursorRule>();
       }
-      if (code === 'EACCES') {
-        process.stderr.write(
-          `[clodbridge] Warning: Cannot read ${rulesDir} — permission denied\n`
-        );
+      if (code === "EACCES") {
+        process.stderr.write(`[clodbridge] Warning: Cannot read ${rulesDir} — permission denied\n`);
         return new Map<string, CursorRule>();
       }
     }
     process.stderr.write(
-      `[clodbridge] Warning: Failed to read ${rulesDir}: ${err instanceof Error ? err.message : String(err)}\n`
+      `[clodbridge] Warning: Failed to read ${rulesDir}: ${err instanceof Error ? err.message : String(err)}\n`,
     );
     return new Map<string, CursorRule>();
   }
@@ -109,7 +90,7 @@ export async function loadAllRules(
 export function getApplicableRules(
   rules: Map<string, CursorRule>,
   filePaths: string[],
-  projectRoot: string
+  projectRoot: string,
 ): CursorRule[] {
   const applicable: CursorRule[] = [];
 
@@ -118,18 +99,18 @@ export function getApplicableRules(
   const normalizedPaths = filePaths.map((p) => {
     const rel = path.isAbsolute(p) ? path.relative(projectRoot, p) : p;
     // Normalize Windows backslashes to forward slashes for micromatch
-    return rel.split(path.sep).join('/');
+    return rel.split(path.sep).join("/");
   });
 
   for (const rule of rules.values()) {
     // Always-apply rules are always applicable
-    if (rule.mode === 'always') {
+    if (rule.mode === "always") {
       applicable.push(rule);
       continue;
     }
 
     // Auto-attached rules: use precompiled glob matcher for O(1) pattern compilation
-    if (rule.mode === 'auto-attached' && rule.globMatcher) {
+    if (rule.mode === "auto-attached" && rule.globMatcher) {
       if (normalizedPaths.some(rule.globMatcher)) {
         applicable.push(rule);
       }
