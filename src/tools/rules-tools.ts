@@ -194,4 +194,42 @@ export function registerRulesTools(
       }
     }
   );
+
+  // Tool: Get all agent-requested rules
+  server.tool(
+    'cursor_get_agent_requested_rules',
+    'Returns all Cursor rules that are agent-requested (no globs, not alwaysApply). These rules must be explicitly requested by agents by name.',
+    {},
+    async () => {
+      try {
+        const rules = Array.from(reader.store.rules.values())
+          .filter((r) => r.mode === 'agent-requested')
+          .map((r) => ({
+            name: r.name,
+            description: r.description,
+            content: r.content,
+          }));
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(rules, null, 2),
+            },
+          ],
+        };
+      } catch (err) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Error loading agent-requested rules: ${
+                err instanceof Error ? err.message : String(err)
+              }`,
+              isError: true,
+            },
+          ],
+        };
+      }
+    }
+  );
 }

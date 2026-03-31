@@ -42,6 +42,7 @@ describe('Rules MCP Tools', () => {
     expect(toolNames).toContain('cursor_get_applicable_rules');
     expect(toolNames).toContain('cursor_list_rules');
     expect(toolNames).toContain('cursor_get_rule');
+    expect(toolNames).toContain('cursor_get_agent_requested_rules');
   });
 
   describe('cursor_get_always_rules', () => {
@@ -242,6 +243,75 @@ describe('Rules MCP Tools', () => {
 
       // Should not find it
       expect(result.content[0].isError).toBe(true);
+    });
+  });
+
+  describe('cursor_get_agent_requested_rules', () => {
+    it('returns only agent-requested rules', async () => {
+      const result = await server.callTool('cursor_get_agent_requested_rules');
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
+
+      const rules = JSON.parse(result.content[0].text);
+      expect(Array.isArray(rules)).toBe(true);
+
+      // Check structure
+      rules.forEach((rule: any) => {
+        expect(rule).toHaveProperty('name');
+        expect(rule).toHaveProperty('description');
+        expect(rule).toHaveProperty('content');
+      });
+
+      // Verify only agent-requested rules are returned
+      expect(rules.some((r: any) => r.name === 'agent-requested')).toBe(true);
+    });
+
+    it('excludes always-apply rules', async () => {
+      const result = await server.callTool('cursor_get_agent_requested_rules');
+      const rules = JSON.parse(result.content[0].text);
+      const ruleNames = rules.map((r: any) => r.name);
+
+      // Should not include 'always-rule'
+      expect(ruleNames).not.toContain('always-rule');
+    });
+
+    it('excludes auto-attached rules', async () => {
+      const result = await server.callTool('cursor_get_agent_requested_rules');
+      const rules = JSON.parse(result.content[0].text);
+      const ruleNames = rules.map((r: any) => r.name);
+
+      // Should not include glob-rule (auto-attached)
+      expect(ruleNames).not.toContain('glob-rule');
+    });
+
+    it('returns valid JSON format', async () => {
+      const result = await server.callTool('cursor_get_agent_requested_rules');
+      expect(() => {
+        JSON.parse(result.content[0].text);
+      }).not.toThrow();
+    });
+
+    it('handles empty result gracefully', async () => {
+      // Create reader with no agent-requested rules
+      const emptyReader = await createCursorReader('/nonexistent/path');
+      const emptyServer = new MockMcpServer();
+      registerRulesTools(emptyServer as any, emptyReader);
+
+      const result = await emptyServer.callTool('cursor_get_agent_requested_rules');
+      expect(result.content[0].type).toBe('text');
+      const rules = JSON.parse(result.content[0].text);
+      expect(Array.isArray(rules)).toBe(true);
+      expect(rules.length).toBe(0);
+    });
+
+    it('includes full rule content', async () => {
+      const result = await server.callTool('cursor_get_agent_requested_rules');
+      const rules = JSON.parse(result.content[0].text);
+
+      rules.forEach((rule: any) => {
+        // Content should have substantive text
+        expect(rule.content.length).toBeGreaterThan(0);
+      });
     });
   });
 });
