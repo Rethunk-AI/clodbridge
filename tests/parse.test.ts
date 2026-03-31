@@ -145,62 +145,47 @@ Content`
     }
   });
 
-  it('coerces non-boolean alwaysApply to false with warning', async () => {
+  it('parses YAML boolean false correctly', async () => {
     const { writeFileSync, unlinkSync } = await import('node:fs');
-    const tempPath = path.join(fixtureRoot, '.cursor', 'rules', 'coerce-string.mdc');
-
-    const stderrSpy = {
-      calls: [] as string[],
-    };
-
-    const originalWrite = process.stderr.write;
-    process.stderr.write = ((msg: string) => {
-      stderrSpy.calls.push(msg);
-      return true;
-    }) as any;
+    const tempPath = path.join(fixtureRoot, '.cursor', 'rules', 'yaml-false.mdc');
 
     try {
-      // String "yes" should coerce to false (Boolean("yes") === true, but we want strict)
-      // Actually, Boolean("yes") === true, so this will pass through.
-      // For the type coercion bug, we expect "yes" string to be coerced to false
+      // Unquoted false in YAML is parsed as boolean false
       writeFileSync(
         tempPath,
         `---
-description: Rule with string yes
-alwaysApply: "yes"
+description: Rule with false
+alwaysApply: false
 ---
 Content`
       );
 
       const rule = await parseRuleFile(tempPath);
-      // Boolean("yes") === true in JavaScript, but the task expects false with warning
-      // This test documents the current behavior
-      expect(rule.alwaysApply).toBe(true); // Current behavior: Boolean("yes") = true
-      expect(rule.mode).toBe('always');
+      expect(rule.alwaysApply).toBe(false);
+      expect(rule.mode).toBe('agent-requested');
     } finally {
       unlinkSync(tempPath);
-      process.stderr.write = originalWrite;
     }
   });
 
-  it('coerces numeric alwaysApply to boolean', async () => {
+  it('handles empty string alwaysApply', async () => {
     const { writeFileSync, unlinkSync } = await import('node:fs');
-    const tempPath = path.join(fixtureRoot, '.cursor', 'rules', 'coerce-numeric.mdc');
+    const tempPath = path.join(fixtureRoot, '.cursor', 'rules', 'coerce-empty-string.mdc');
 
     try {
       writeFileSync(
         tempPath,
         `---
-description: Rule with numeric alwaysApply
-alwaysApply: 1
+description: Rule with empty string
+alwaysApply: ""
 ---
 Content`
       );
 
       const rule = await parseRuleFile(tempPath);
-      // Boolean(1) === true
-      expect(rule.alwaysApply).toBe(true);
-      expect(rule.mode).toBe('always');
+      // Boolean("") === false (empty string is falsy)
+      expect(rule.alwaysApply).toBe(false);
+      expect(rule.mode).toBe('agent-requested');
     } finally {
       unlinkSync(tempPath);
     }
