@@ -84,9 +84,10 @@ export function createWatcher(
       });
 
       activeWatcher = watcher;
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
       process.stderr.write(
-        `[clodbridge] Warning: could not watch ${cursorDir}\n`
+        `[clodbridge] Warning: could not watch ${cursorDir}: ${msg}\n`
       );
     }
   };
@@ -130,9 +131,10 @@ export function createWatcher(
           onChange(cursorDir);
         }
       });
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
       process.stderr.write(
-        `[clodbridge] Warning: could not watch parent directory ${parentDir}\n`
+        `[clodbridge] Warning: could not watch parent directory ${parentDir}: ${msg}\n`
       );
     }
   }
