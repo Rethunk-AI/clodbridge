@@ -40,6 +40,14 @@ export async function createServer(projectRoot: string): Promise<McpServer> {
   // Register prompts (slash commands)
   registerPrompts(server, reader);
 
+  // Start file watcher for live reload
+  // When files change, the reader automatically reloads via the onChange callback
+  reader.watch(() => {
+    process.stderr.write(
+      `[clodbridge] Cursor files reloaded from ${projectRoot}\n`
+    );
+  });
+
   return server;
 }
 
