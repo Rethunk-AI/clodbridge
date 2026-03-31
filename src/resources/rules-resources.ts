@@ -51,9 +51,13 @@ export function registerRulesResources(
   server.resource(
     'cursor-rule',
     'cursor://rules/{name}',
-    async (uri, params) => {
+    async (uri, params: Record<string, unknown>) => {
       try {
-        const name = params.name as string;
+        const name = String(params.name ?? '');
+        if (!name) {
+          throw new Error('Rule name parameter is required');
+        }
+
         const rule = reader.store.rules.get(name);
 
         if (!rule) {

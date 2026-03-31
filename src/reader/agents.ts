@@ -21,16 +21,19 @@ export async function loadAllAgents(
 
   try {
     // Search for .md files directly in agents/, not recursively
-    const files = await glob('*.md', {
+    const files = glob('*.md', {
       cwd: agentsDir,
       absolute: true,
     });
 
     const agents = new Map<string, CursorAgent>();
 
-    for (const filePath of files) {
+    for await (const filePath of files) {
       try {
-        const agent = await parseAgentFile(filePath);
+        const absolutePath = path.isAbsolute(filePath)
+          ? filePath
+          : path.join(agentsDir, filePath);
+        const agent = await parseAgentFile(absolutePath);
         agents.set(agent.name, agent);
       } catch (err) {
         process.stderr.write(

@@ -20,16 +20,19 @@ export async function loadAllRules(
   const rulesDir = path.join(projectRoot, '.cursor', 'rules');
 
   try {
-    const files = await glob('*.mdc', {
+    const files = glob('*.mdc', {
       cwd: rulesDir,
       absolute: true,
     });
 
     const rules = new Map<string, CursorRule>();
 
-    for (const filePath of files) {
+    for await (const filePath of files) {
       try {
-        const rule = await parseRuleFile(filePath);
+        const absolutePath = path.isAbsolute(filePath)
+          ? filePath
+          : path.join(rulesDir, filePath);
+        const rule = await parseRuleFile(absolutePath);
         rules.set(rule.name, rule);
       } catch (err) {
         process.stderr.write(

@@ -19,7 +19,7 @@ export async function createCursorReader(
 ): Promise<CursorReader> {
   const cursorDir = path.join(projectRoot, '.cursor');
   let stopWatcher: (() => void) | null = null;
-  let onChangeCallbacks: Array<() => void> = [];
+  const onChangeCallbacks = new Set<() => void>();
 
   // Load all files
   async function loadAll(): Promise<CursorStore> {
@@ -48,8 +48,8 @@ export async function createCursorReader(
     },
 
     watch(onChange: () => void): () => void {
-      // Add callback to the list
-      onChangeCallbacks.push(onChange);
+      // Add callback to the set
+      onChangeCallbacks.add(onChange);
 
       // Start watcher on first watch call
       if (!stopWatcher) {
@@ -69,9 +69,9 @@ export async function createCursorReader(
 
       // Return unsubscribe function
       return () => {
-        onChangeCallbacks = onChangeCallbacks.filter((cb) => cb !== onChange);
+        onChangeCallbacks.delete(onChange);
         // Stop watcher if no more subscribers
-        if (onChangeCallbacks.length === 0 && stopWatcher) {
+        if (onChangeCallbacks.size === 0 && stopWatcher) {
           stopWatcher();
           stopWatcher = null;
         }

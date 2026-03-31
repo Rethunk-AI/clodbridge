@@ -21,16 +21,19 @@ export async function loadAllSkills(
 
   try {
     // Search for SKILL.md files one level deep: skills/*/SKILL.md
-    const files = await glob('*/SKILL.md', {
+    const files = glob('*/SKILL.md', {
       cwd: skillsDir,
       absolute: true,
     });
 
     const skills = new Map<string, CursorSkill>();
 
-    for (const filePath of files) {
+    for await (const filePath of files) {
       try {
-        const skill = await parseSkillFile(filePath);
+        const absolutePath = path.isAbsolute(filePath)
+          ? filePath
+          : path.join(skillsDir, filePath);
+        const skill = await parseSkillFile(absolutePath);
         skills.set(skill.name, skill);
       } catch (err) {
         process.stderr.write(

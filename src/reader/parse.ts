@@ -56,10 +56,17 @@ export async function parseSkillFile(filePath: string): Promise<CursorSkill> {
   };
 
   // Use parent directory name as the authoritative skill name
-  const name = path.basename(path.dirname(filePath));
+  const directoryName = path.basename(path.dirname(filePath));
+
+  // Warn if frontmatter name differs from directory name
+  if (data.name && data.name !== directoryName) {
+    process.stderr.write(
+      `[clodbridge] Warning: Skill frontmatter name "${data.name}" does not match directory name "${directoryName}". Using directory name.\n`
+    );
+  }
 
   return {
-    name,
+    name: directoryName,
     filePath,
     description: data.description ?? '',
     content,

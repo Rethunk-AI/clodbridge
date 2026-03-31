@@ -49,9 +49,13 @@ export function registerAgentsResources(
   server.resource(
     'cursor-agent',
     'cursor://agents/{name}',
-    async (uri, params) => {
+    async (uri, params: Record<string, unknown>) => {
       try {
-        const name = params.name as string;
+        const name = String(params.name ?? '');
+        if (!name) {
+          throw new Error('Agent name parameter is required');
+        }
+
         const agent = reader.store.agents.get(name);
 
         if (!agent) {

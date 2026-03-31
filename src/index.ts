@@ -11,18 +11,46 @@ import { getAlwaysRules } from './reader/rules.js';
 import { startServer } from './server.js';
 
 /**
+ * Print help message and exit.
+ */
+function printHelp(): void {
+  process.stdout.write(`clodbridge - MCP server for Cursor Rules, Skills, and Agents
+
+Usage: clodbridge [OPTIONS] [PROJECT_ROOT]
+
+Arguments:
+  PROJECT_ROOT                Path to the project root (defaults to cwd)
+
+Options:
+  --project-root <PATH>       Explicitly specify the project root directory
+  --dump-always-rules         Dump always-apply rules in hook format to stdout
+  --help                      Show this help message and exit
+
+Examples:
+  clodbridge                              Start MCP server for current directory
+  clodbridge /path/to/project             Start MCP server for specified project
+  clodbridge --project-root /path         Start MCP server (explicit flag)
+  clodbridge --dump-always-rules          Output rules in hook format
+`);
+}
+
+/**
  * Parse command-line arguments and resolve the project root.
  */
 function resolveProjectRoot(): {
   projectRoot: string;
   dumpRules: boolean;
+  showHelp: boolean;
 } {
   const args = process.argv.slice(2);
   let projectRoot = process.cwd();
   let dumpRules = false;
+  let showHelp = false;
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--project-root' && args[i + 1]) {
+    if (args[i] === '--help') {
+      showHelp = true;
+    } else if (args[i] === '--project-root' && args[i + 1]) {
       projectRoot = path.resolve(args[i + 1]);
       i++;
     } else if (args[i] === '--dump-always-rules') {
@@ -33,7 +61,7 @@ function resolveProjectRoot(): {
     }
   }
 
-  return { projectRoot, dumpRules };
+  return { projectRoot, dumpRules, showHelp };
 }
 
 /**
@@ -79,7 +107,12 @@ async function dumpAlwaysRules(projectRoot: string): Promise<void> {
  * Main entry point.
  */
 async function main(): Promise<void> {
-  const { projectRoot, dumpRules } = resolveProjectRoot();
+  const { projectRoot, dumpRules, showHelp } = resolveProjectRoot();
+
+  if (showHelp) {
+    printHelp();
+    process.exit(0);
+  }
 
   if (dumpRules) {
     // Dump mode for hook integration
