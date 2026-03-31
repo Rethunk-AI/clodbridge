@@ -8,128 +8,87 @@
 
 **MCP server that bridges Cursor's `.cursor/` directory into Claude Code.**
 
-Define custom rules, skills, and agents in your project. Claude Code automatically discovers and uses them.
+Define custom **rules**, **skills**, and **agents** in your project. Claude Code automatically discovers and uses them.
 
 ---
 
-## 👋 Getting Started
+## 👋 Quick Navigation
 
-**What describes you?**
+### 👤 **I'm a user** → [HUMANS.md](HUMANS.md)
+- 30-second quick start
+- How to create rules, skills, agents
+- Best practices and examples
+- Troubleshooting guide
 
-### 👤 I'm a human user or project owner
-→ **Read [HUMANS.md](HUMANS.md)**
+### 🤖 **I'm a developer** → [AGENTS.md](AGENTS.md)
+- MCP tools and resources reference
+- Agent spawning and discovery
+- Architecture and file locations
+- Development guide
 
-Quick start in 30 seconds. Learn how to:
-- Create rules Claude Code follows automatically
-- Write skills with detailed guidance
-- Define specialized agents for your tasks
-
-### 🤖 I'm an AI agent or LLM developer
-→ **Read [AGENTS.md](AGENTS.md)**
-
-Technical documentation. Learn:
-- How to spawn agents proactively
-- The MCP tool ecosystem
-- Agent discovery mechanism
-
----
-
-## What It Does
-
-- **Rules** — Guidelines Claude Code follows
-- **Skills** — Detailed how-to guides
-- **Agents** — Specialized AI experts for specific domains
-
-Everything lives in `.cursor/` and syncs instantly to Claude Code via MCP.
+### 🏗️ **I'm contributing** → [CONTRIBUTING.md](CONTRIBUTING.md)
+- Testing setup and patterns
+- Build and deployment
+- Adding new file types
+- Code conventions
 
 ---
 
-## Features
+## What You Get
 
-✅ Dynamic discovery (add a file, it appears instantly)
-✅ Agent spawning (Claude Code offers specialists automatically)
-✅ Live reloading (changes picked up within 200ms)
-✅ Zero config (works out of the box)
-✅ Type safe (full TypeScript strict mode)
-
----
-
-## Test Coverage & Quality
-
-**Test Suite:** Comprehensive coverage across all layers
-- Reader layer: discovery, parsing, rule matching, file watching
-- MCP tools layer: all `cursor_*` tools with error handling
-- MCP resources layer: all `cursor://` resource endpoints
-- MCP prompts: `load_rules` and `load_skills` context injection
-- Integration tests: end-to-end workflows
-
-**Tooling:**
-- **Linter:** Biome (combined linting + formatting)
-- **Package Manager:** bun with auto-lint/test hooks on file save
-- **Type Checking:** TypeScript strict mode
-- **Build:** Clean, zero-config compilation
-
-**Coverage Target:** 80%+ on `src/reader/` (parser logic)
+✅ **Dynamic discovery** — Add a file, it appears instantly
+✅ **Agent spawning** — Claude Code offers specialists automatically
+✅ **Live reloading** — Changes picked up within 200ms
+✅ **Zero config** — Works out of the box
+✅ **Type safe** — Full TypeScript strict mode
+✅ **Well tested** — 80%+ coverage on core logic
 
 ---
 
-## MCP Tools & Resources
+## Quick Start Example
 
-**MCP Tools** — Fetch and filter rules, skills, agents:
-- `cursor_get_always_rules` — Rules that apply everywhere
-- `cursor_get_applicable_rules(file_paths)` — Rules matching specific files
-- `cursor_get_agent_requested_rules` — Rules agents explicitly request
-- `cursor_list_rules` / `cursor_get_rule(name)` — Browse and fetch rules
-- `cursor_list_skills` / `cursor_get_skill(name)` — Browse and fetch skills
-- `cursor_list_agents` / `cursor_get_agent(name)` — Browse and fetch agents
-
-**MCP Resources** — Read-only file access via resource URIs:
-- `cursor://rules` — JSON index of all rules
-- `cursor://rules/{name}` — Raw rule file content
-- `cursor://skills` — JSON index of all skills
-- `cursor://skills/{name}` — Raw skill file content
-- `cursor://agents` — JSON index of all agents
-- `cursor://agents/{name}` — Raw agent file content
-
-**MCP Prompts** — Context injection slash commands:
-- `/mcp__clodbridge__load_rules` — Inject all always-apply rules
-- `/mcp__clodbridge__load_skills` — Inject all available skills
-
----
-
-## CLI Usage
-
-```bash
-# Start the MCP server for current directory
-node dist/index.js
-
-# Start the MCP server for a specific project
-node dist/index.js /path/to/project
-
-# Dump always-apply rules in hook format (for settings.json integration)
-node dist/index.js --dump-always-rules /path/to/project
-```
-
----
-
-## Quick Example
-
-**Create a rule** (`.cursor/rules/my-rule.mdc`):
+Create `.cursor/rules/my-rule.mdc`:
 
 ```yaml
 ---
-name: always-test
-description: Write tests for new features
+name: my-rule
+description: Always test new features
 alwaysApply: true
 ---
 
-# Always Test
+# My Rule
 
-Add tests for every feature you write.
+Add tests when writing new features.
 ```
 
-**Result:** Claude Code will follow this rule automatically.
+**Done!** Claude Code will follow this rule automatically.
+
+→ **For more examples and detailed guidance, see [HUMANS.md](HUMANS.md)**
 
 ---
 
-**Next:** Choose your documentation above and get started! 👆
+## Architecture Overview
+
+- **`src/reader/`** — File discovery, parsing, rule matching
+- **`src/tools/`** — MCP tool implementations
+- **`src/resources/`** — MCP resource endpoints
+- **`src/server.ts`** — Server initialization
+
+→ **For technical deep-dive, see [AGENTS.md](AGENTS.md#architecture)**
+
+---
+
+## File Locations
+
+```
+.cursor/
+├── rules/           # Guidelines Claude Code follows (.mdc files)
+├── skills/          # Detailed how-to guides (SKILL.md in subdirs)
+└── agents/          # Specialized AI assistants (.md files)
+```
+
+Each file is immediately discoverable by Claude Code via the MCP bridge.
+
+---
+
+**Choose your starting point above and get going! 👆**
