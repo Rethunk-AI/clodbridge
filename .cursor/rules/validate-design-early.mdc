@@ -1,85 +1,41 @@
 ---
-description: Ask for approval on design decisions before implementing 100+ lines
-globs:
+description: Ask for design approval before implementing 100+ lines
 alwaysApply: true
 ---
 
 # Validate Design Early
 
-## Rule
+**Before implementing a major feature, confirm the design with the user.**
 
-Before implementing a major feature or component, confirm the design with the user. Don't assume.
+## What Counts as Major
 
-## What Counts as "Major"
-
-- A new subsystem (e.g., "should we add file watching?" or "should we support MCP Prompts?")
-- A design choice with multiple valid approaches (e.g., "Zod vs io-ts for validation")
-- A requirement that wasn't explicitly stated (e.g., "I'm adding --dump-always-rules mode for hooks")
-- Any change that commits the user to a specific architectural direction
+- A new subsystem (file watching, MCP resources, etc.)
+- A design choice with multiple valid approaches
+- A requirement not explicitly stated
+- Any architectural direction you're committing the user to
 
 ## When to Ask
 
-**Before** you write more than 50-100 lines of code for that feature. Examples:
-
-```
-Scenario: "Should I add MCP Resources (cursor:// URIs)?"
-Timeline:
-  ✗ Don't: Write 200 lines of resources code, then ask
-  ✓ Do: Ask after planning, before writing
-
-Scenario: "Should the reader use chokidar or fs.watch?"
-Timeline:
-  ✗ Don't: Implement both, then ask which is better
-  ✓ Do: List pros/cons, ask for preference, implement one
-
-Scenario: "I'm adding a --dump-always-rules CLI flag for hook integration"
-Timeline:
-  ✗ Don't: Implement it, commit it, then mention it
-  ✓ Do: Show the user the hook schema, explain the feature, confirm it's needed
-```
+**Before** writing 100+ lines for that feature. After planning, before implementing.
 
 ## How to Ask
 
 Use `AskUserQuestion` with concrete options:
 
 ```
-Question: "Should clodbridge expose MCP Resources (cursor:// URIs)?"
+"Should clodbridge expose MCP Resources (cursor:// URIs)?"
 Options:
-  A) "Yes - users will want to access rule files directly via resources"
-  B) "No - tools are sufficient; resources add complexity"
-  C) "Yes, but only for rules, not skills/agents"
-```
-
-Or reference the plan:
-
-```
-"The plan includes MCP Prompts (slash commands) for manual /load_rules.
-Do you want this, or is CLAUDE.md instruction + tools sufficient?"
+  A) Yes - users will want direct file access
+  B) No - tools are sufficient
+  C) Yes, but only for rules
 ```
 
 ## What NOT to Ask
 
-- ❌ Low-level implementation details ("should I use map or object for caching?")
-- ❌ Code style ("tabs vs spaces?")
-- ❌ Questions you can answer from the user's prior feedback
+- Low-level implementation details (map vs object?)
+- Code style (tabs vs spaces?)
+- Questions you can answer from user's prior feedback
 
-## For clodbridge specifically
+---
 
-Ask before:
-- Adding new MCP tool types (we have tools for rules/skills/agents — add more?)
-- Adding file watching (hot-reload = yes, but with what debounce time?)
-- Adding hook support (--dump-always-rules is one pattern; are there others?)
-- Adding new CLI flags (each flag is a design decision)
-
-Don't ask before:
-- Implementing a tool whose design is already approved
-- Writing tests for existing code
-- Refactoring internal implementation
-- Writing documentation
-
-## Benefit
-
-- **Prevent wasted work** — Don't implement something the user doesn't want
-- **Align on scope** — Confirm the feature is in scope before building it
-- **Get better feedback** — User feedback on design > feedback on implementation
-- **Respect user time** — If they don't want MCP Resources, don't write 200 lines for it
+For design decision patterns and examples, see the `validate-design-early` skill.

@@ -1,143 +1,64 @@
 ---
 description: Save project context, user preferences, and decisions to memory for future sessions
-globs:
 alwaysApply: true
 ---
 
 # Persist Context to Memory
 
-## Rule
-
-After each session, save what you learned about the user, the project, and the work to memory files.
-
-## Why
-
-- **Continuity** — Next session, you know the project history without re-reading everything
-- **Preferences** — You remember how the user likes to work (commit style, validation frequency, etc.)
-- **Decisions** — You don't re-ask the same questions or re-propose the same designs
-- **Efficiency** — Next session starts fast because context is already loaded
+**At session end, save what you learned about the user, project, and work.**
 
 ## What to Save
 
 ### User Memory
-
-Save user preferences and working style:
-
-```
-user_work_style.md
-- "Prefers small commits (< 5 files)"
-- "Wants verification (tests/typecheck) before each feature"
-- "Likes iterative checkpoints, not code dumps"
-- "Uses bun, not npm"
-```
+- Work style preferences
+- How they like to receive feedback
+- Communication patterns
+- Values (quality over speed, etc.)
 
 ### Project Memory
-
-Save project-specific decisions and context:
-
-```
-clodbridge_architecture.md
-- "Rules, Skills, Agents are separate MCP tool sets"
-- "File watching is via chokidar with 200ms debounce"
-- "Glob matching uses micromatch"
-- "Uses gray-matter for YAML frontmatter parsing"
-```
+- Architecture decisions
+- Design patterns chosen
+- File locations and structure
+- Integration points
 
 ### Feedback Memory
-
-Save guidance the user has given:
-
-```
-feedback_process.md
-- "Commit early and often, don't batch commits"
-- "Verify code before moving to the next feature"
-- "Ask about design decisions before implementing 100+ lines"
-- "Solve blockers; don't work around them"
-```
+- Explicit guidance they've given
+- Patterns that worked well
+- Things to avoid
 
 ### Reference Memory
-
-Save external resources and configurations:
-
-```
-reference_mcp.md
-- "Claude Code MCP hook schema: sessionStart, PreToolUse, PostToolUse, UserPromptSubmit"
-- "Cursor Rules format: .cursor/rules/*.mdc with description/globs/alwaysApply fields"
-- ".claude/settings.json controls MCP server registration"
-```
-
-## When to Save
-
-**At the end of the session**, or when:
-- The user explicitly asks you to remember something
-- You discover a preference or constraint
-- You complete a major milestone
-- You learn something about the project that will inform future work
+- External resources used
+- Configuration formats
+- Tool documentation
 
 ## How to Save
 
-1. Read the memory system (`/home/damon/.claude/projects/-...-clodbridge/memory/`)
-2. Create or update `.md` files with frontmatter:
-   ```markdown
+1. Create `.md` files in `~/.claude/projects/.../memory/`
+2. Add frontmatter:
+   ```yaml
    ---
-   name: User work style
-   description: How this user prefers to work and be communicated with
-   type: user
+   name: Short name
+   description: One-line summary
+   type: user|project|feedback|reference
    ---
-
-   Content here...
    ```
-3. Update `MEMORY.md` with index entries pointing to those files
+3. Update `MEMORY.md` with an index entry
 
-## For clodbridge specifically
+## When to Save
 
-What to save after this session:
-
-```
-Memory file: user_preferences.md
-- Prefers small commits with logical separation
-- Wants verification (TypeScript typecheck, tests) before proceeding
-- Dislikes code dumps; prefers iterative checkpoints
-- Wants design decisions clarified before implementation
-- Values patterns that are exemplary (rules should be reusable)
-
-Memory file: clodbridge_design.md
-- MCP server bridges Cursor (.cursor/) to Claude Code
-- Three primary concepts: Rules, Skills, Agents
-- File formats: .mdc (rules), .md (agents), SKILL.md (skills nested)
-- Tools: 6 callables for fetching + listing
-- Resources: cursor:// URIs for direct file access
-- Prompts: /mcp__clodbridge__load_rules slash command
-- Integration: CLAUDE.md instructions, hooks, CLI modes
-
-Memory file: patterns_codified.md
-- Commit early, commit often (< 8 files, < 500 lines per commit)
-- Verify before proceeding (tsc, tests, integration checks)
-- Validate design early (ask before 100+ lines of implementation)
-- Solve blockers proactively (don't ignore or work around)
-- Manage scope iteratively (checkpoint after each increment)
-- Persist context to memory (for continuity across sessions)
-```
+- At session end
+- When user explicitly asks to remember something
+- After completing a major milestone
+- When you discover a preference or constraint
 
 ## Exception
 
 Don't save:
 - Temporary debug notes
 - Exploration dead-ends
-- Ephemeral task state (use TaskCreate/TaskUpdate for that)
-- Things already documented in CLAUDE.md or README
+- Ephemeral task state (use TaskCreate for that)
+- Things already in CLAUDE.md or README
 
-## For Future Sessions
+---
 
-When starting clodbridge work again:
-
-```
-1. Check /memory/MEMORY.md for project context
-2. Load user_preferences.md to understand how you like to work
-3. Load clodbridge_design.md to remember the architecture
-4. Load patterns_codified.md to follow the established rules
-5. Read the most recent commit log for latest state
-6. Proceed with confidence that context is preserved
-```
-
-This eliminates "wait, what was the design again?" and re-asking the same questions.
+For memory structure templates and examples, see the `persist-context-to-memory` skill.

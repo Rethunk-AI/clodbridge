@@ -6,83 +6,31 @@ alwaysApply: true
 
 # Verify Before Proceeding
 
-## Rule
-
-After writing code, verify it works before writing the next feature. Don't assume correctness.
+**Don't assume correctness. Verify after each commit.**
 
 ## Verification Checklist
 
-### Mandatory (always do these)
+- [ ] `npm run typecheck` (zero errors)
+- [ ] `npm test` (100% pass)
+- [ ] No unresolved imports or syntax errors
+- [ ] Integration test if applicable (call an MCP tool, etc.)
 
-- [ ] **Type check** — `npm run typecheck` or `bun run typecheck` (zero errors)
-- [ ] **Tests pass** — `npm test` for any new tests (100% pass rate)
-- [ ] **No syntax errors** — At minimum, can the TypeScript parser open the file?
+## If Verification Fails
 
-### Conditional (do these when applicable)
+Fix the code, don't work around it. Debug the issue:
+- **Type error?** Update types or fix code (consciously)
+- **Test failure?** Fix the code or the test (if the test is wrong)
+- **Build error?** Find the root cause (missing export, wrong import, etc.)
 
-- [ ] **Integration test** — If adding an MCP tool, call it and verify the response
-- [ ] **File fixtures exist** — If parsing logic, do the test fixture files exist?
-- [ ] **Glob matching works** — If using micromatch, test with real file paths
-
-## What to Do If Verification Fails
-
-**Don't proceed.** Stop and fix the issue:
-
-1. **Syntax error?** — Fix the typo/bracket mismatch
-2. **Type error?** — Either fix the code or update the type (consciously, not accidentally)
-3. **Test failure?** — Debug the test; don't skip it or rewrite it to pass if the code is wrong
-4. **Build failure?** — Identify the root cause (missing export, wrong import path, etc.)
-
-Only after verification passes, commit, and move to the next feature.
+Only after verification passes, move to the next feature.
 
 ## When Tooling Blocks You
 
-If `npm test` fails due to a **tooling issue** (not a code issue), you have two options:
+If `npm` is unavailable:
+1. Try alternatives (`bun`, `npx`, online TypeScript playground)
+2. If no alternatives exist, escalate to the user
+3. Don't ignore the problem and keep coding
 
-### Option A: Solve the tooling issue (preferred)
+---
 
-```
-npm fails with "EROFS: read-only file system"
-  → Try: npm install --cache=/tmp/claude-1000/npm-cache
-  → Try: Use bun instead: bun install
-  → Try: Ask the user to run npm install outside Claude Code
-```
-
-### Option B: Find an alternative verification path
-
-```
-npm install fails
-  → Read the TypeScript source files by hand for syntax errors
-  → Use an online TypeScript compiler (tsc playground)
-  → Ask for help
-```
-
-**Don't:** Ignore the problem and keep writing code. You'll only discover the issue after 2000 more lines.
-
-## For clodbridge specifically
-
-- After writing parse.ts, run the parse tests
-- After writing rules.ts, verify glob matching with a test file path
-- After writing server.ts, verify the MCP registration syntax
-- After writing all tools, do a quick integration test calling one tool
-
-## Error Prevention
-
-**Write small amounts of code, verify often.**
-
-❌ **Don't:**
-```
-Write all 5 discovery modules (rules, skills, agents, etc.)
-Then: npm test
-Then: 47 failures
-Then: Debug for an hour
-```
-
-✅ **Do:**
-```
-Write rules.ts → npm test → Pass ✓
-Write skills.ts → npm test → Pass ✓
-Write agents.ts → npm test → Pass ✓
-```
-
-Each step is fast, errors are caught immediately.
+For detailed verification strategies and error handling, see the `verify-before-proceeding` skill.
