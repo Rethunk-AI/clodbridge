@@ -45,8 +45,22 @@ export async function loadAllAgents(
     });
 
     return agents;
-  } catch {
-    // Directory doesn't exist or readdir failed — return empty map
+  } catch (err: unknown) {
+    if (err instanceof Error && 'code' in err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ENOENT') {
+        return new Map<string, CursorAgent>();
+      }
+      if (code === 'EACCES') {
+        process.stderr.write(
+          `[clodbridge] Warning: Cannot read ${agentsDir} — permission denied\n`
+        );
+        return new Map<string, CursorAgent>();
+      }
+    }
+    process.stderr.write(
+      `[clodbridge] Warning: Failed to read ${agentsDir}: ${err instanceof Error ? err.message : String(err)}\n`
+    );
     return new Map<string, CursorAgent>();
   }
 }
