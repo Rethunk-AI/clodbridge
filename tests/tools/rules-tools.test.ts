@@ -36,10 +36,12 @@ describe('Rules MCP Tools', () => {
     registerRulesTools(server as any, reader);
   });
 
-  it('registers cursor_get_always_rules and cursor_get_applicable_rules tools', () => {
+  it('registers all rules tools', () => {
     const toolNames = server.getToolNames();
     expect(toolNames).toContain('cursor_get_always_rules');
     expect(toolNames).toContain('cursor_get_applicable_rules');
+    expect(toolNames).toContain('cursor_list_rules');
+    expect(toolNames).toContain('cursor_get_rule');
   });
 
   describe('cursor_get_always_rules', () => {
@@ -148,6 +150,98 @@ describe('Rules MCP Tools', () => {
       // Empty paths should only match always rules
       const alwaysRules = rules.filter((r: any) => r.mode === 'always');
       expect(alwaysRules.length).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('cursor_list_rules', () => {
+    it('lists all available rules', async () => {
+      const result = await server.callTool('cursor_list_rules');
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
+
+      const rules = JSON.parse(result.content[0].text);
+      expect(Array.isArray(rules)).toBe(true);
+      expect(rules.length).toBeGreaterThan(0);
+
+      // Check structure
+      rules.forEach((rule: any) => {
+        expect(rule).toHaveProperty('name');
+        expect(rule).toHaveProperty('description');
+        expect(rule).toHaveProperty('mode');
+        expect(rule).toHaveProperty('alwaysApply');
+      });
+    });
+
+    it('includes test fixture rules', async () => {
+      const result = await server.callTool('cursor_list_rules');
+      const rules = JSON.parse(result.content[0].text);
+      const ruleNames = rules.map((r: any) => r.name);
+
+      expect(ruleNames).toContain('always-rule');
+      expect(ruleNames).toContain('glob-rule');
+      expect(ruleNames).toContain('agent-requested');
+    });
+
+    it('returns valid JSON format', async () => {
+      const result = await server.callTool('cursor_list_rules');
+      expect(() => {
+        JSON.parse(result.content[0].text);
+      }).not.toThrow();
+    });
+  });
+
+  describe('cursor_get_rule', () => {
+    it('returns full content of a rule', async () => {
+      const result = await server.callTool('cursor_get_rule', {
+        name: 'always-rule',
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
+
+      const content = result.content[0].text;
+      expect(typeof content).toBe('string');
+      expect(content.length).toBeGreaterThan(0);
+      // Should include YAML frontmatter
+      expect(content).toContain('---');
+    });
+
+    it('returns error for nonexistent rule', async () => {
+      const result = await server.callTool('cursor_get_rule', {
+        name: 'nonexistent-rule',
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].isError).toBe(true);
+      expect(result.content[0].text).toContain('not found');
+    });
+
+    it('includes available rules list in error message', async () => {
+      const result = await server.callTool('cursor_get_rule', {
+        name: 'nonexistent',
+      });
+
+      expect(result.content[0].text).toContain('Available rules');
+    });
+
+    it('returns raw rule content with frontmatter', async () => {
+      const result = await server.callTool('cursor_get_rule', {
+        name: 'always-rule',
+      });
+
+      const content = result.content[0].text;
+      // Should be the raw file content
+      expect(content).toBeTruthy();
+      expect(typeof content).toBe('string');
+    });
+
+    it('handles rule names case-sensitively', async () => {
+      const result = await server.callTool('cursor_get_rule', {
+        name: 'ALWAYS-RULE', // Wrong case
+      });
+
+      // Should not find it
+      expect(result.content[0].isError).toBe(true);
     });
   });
 });

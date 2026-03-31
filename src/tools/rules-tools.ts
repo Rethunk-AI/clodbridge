@@ -105,4 +105,93 @@ export function registerRulesTools(
       }
     }
   );
+
+  // Tool: List all available rules
+  server.tool(
+    'cursor_list_rules',
+    'Lists all available Cursor rules with their names, descriptions, and modes.',
+    {},
+    async () => {
+      try {
+        const rules = Array.from(reader.store.rules.values()).map((r) => ({
+          name: r.name,
+          description: r.description,
+          mode: r.mode,
+          alwaysApply: r.alwaysApply,
+        }));
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(rules, null, 2),
+            },
+          ],
+        };
+      } catch (err) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Error listing rules: ${
+                err instanceof Error ? err.message : String(err)
+              }`,
+              isError: true,
+            },
+          ],
+        };
+      }
+    }
+  );
+
+  // Tool: Get a specific rule by name
+  server.tool(
+    'cursor_get_rule',
+    'Returns the full content of a named Cursor rule.',
+    {
+      name: z
+        .string()
+        .describe(
+          'The rule name (filename without .mdc extension, e.g. "commit-early-commit-often")'
+        ),
+    },
+    async ({ name }) => {
+      try {
+        const rule = reader.store.rules.get(name);
+        if (!rule) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Rule "${name}" not found. Available rules: ${
+                  Array.from(reader.store.rules.keys()).join(', ') || '(none)'
+                }`,
+                isError: true,
+              },
+            ],
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: rule.raw,
+            },
+          ],
+        };
+      } catch (err) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Error getting rule: ${
+                err instanceof Error ? err.message : String(err)
+              }`,
+              isError: true,
+            },
+          ],
+        };
+      }
+    }
+  );
 }
