@@ -10,9 +10,9 @@ Think of it as: *"Configure Claude Code to understand your project's conventions
 
 ## Quick Start
 
-### 1. Install clodbridge
+### 1. Set Up clodbridge
 
-The server is already registered in your Claude Code session. No installation needed.
+Add clodbridge as an MCP server in your Claude Code configuration (`.claude/settings.json` or the global settings). Once registered, it bridges your `.cursor/` directory automatically -- no further installation needed.
 
 ### 2. Create Your First Rule
 
@@ -93,7 +93,7 @@ Then ask Claude Code: *"Spawn the my-expert agent"* and it will appear with spec
 
 **Purpose:** Guidelines that Claude Code should follow while working in your project.
 
-**Format:** YAML frontmatter + Markdown content
+**Format:** YAML frontmatter + Markdown content (`.mdc` stands for "Markdown with Config" -- Cursor's convention for rules files)
 
 **Common fields:**
 - `name` — Unique identifier
@@ -245,7 +245,7 @@ Then ask Claude Code: *"Spawn the my-expert agent"* and it will appear with spec
 1. File is at `.cursor/agents/*.md` (with `.md` extension)
 2. Frontmatter has `name`, `model`, `description` fields
 3. Wait 1 second (file watcher picks up changes)
-4. Model is valid: `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`
+4. The `model` field uses a valid identifier (e.g., `claude-opus-4-6`, `claude-sonnet-4-6`)
 
 ### "The rule isn't being applied"
 
@@ -287,10 +287,11 @@ Then ask Claude Code: *"Spawn the my-expert agent"* and it will appear with spec
 
 ## Getting Help
 
-- **How do I write a rule?** → See the `commit-early-commit-often` rule for examples
-- **How do I structure a skill?** → Check `.cursor/skills/` for examples
-- **How do I define an agent?** → Look at `.cursor/agents/mcp-validator.md`
-- **How do I ask Claude Code to use my rule?** → Just ask! If it's marked `alwaysApply: true`, Claude will follow it automatically
+- **How do I write a rule?** -- See the `commit-early-commit-often` rule in `.cursor/rules/` for a working example
+- **How do I structure a skill?** -- Check `.cursor/skills/` for examples
+- **How do I define an agent?** -- Look at `.cursor/agents/mcp-validator.md`
+- **How do I ask Claude Code to use my rule?** -- If it is marked `alwaysApply: true`, Claude follows it automatically. Otherwise, just mention the topic and matching rules will activate.
+- **Something broken?** -- Open an issue at [github.com/Rethunk-AI/clodbridge](https://github.com/Rethunk-AI/clodbridge/issues)
 
 ## What's Next?
 

@@ -12,36 +12,24 @@ Define custom **rules**, **skills**, and **agents** in your project. Claude Code
 
 ---
 
-## 👋 Quick Navigation
+## Quick Navigation
 
-### 👤 **I'm a user** → [HUMANS.md](HUMANS.md)
-- 30-second quick start
-- How to create rules, skills, agents
-- Best practices and examples
-- Troubleshooting guide
-
-### 🤖 **I'm a developer** → [AGENTS.md](AGENTS.md)
-- MCP tools and resources reference
-- Agent spawning and discovery
-- Architecture and file locations
-- Development guide
-
-### 🏗️ **I'm contributing** → [CONTRIBUTING.md](CONTRIBUTING.md)
-- Testing setup and patterns
-- Build and deployment
-- Adding new file types
-- Code conventions
+| Audience | Document | What You'll Find |
+|----------|----------|-----------------|
+| **Users** | [HUMANS.md](HUMANS.md) | Quick start, creating rules/skills/agents, best practices, troubleshooting |
+| **AI Agents & Developers** | [AGENTS.md](AGENTS.md) | MCP tools reference, agent spawning, architecture, development guide |
+| **Contributors** | [CONTRIBUTING.md](CONTRIBUTING.md) | Testing, build setup, adding file types, code conventions |
 
 ---
 
 ## What You Get
 
-✅ **Dynamic discovery** — Add a file, it appears instantly
-✅ **Agent spawning** — Claude Code offers specialists automatically
-✅ **Live reloading** — Changes picked up within 200ms
-✅ **Zero config** — Works out of the box
-✅ **Type safe** — Full TypeScript strict mode
-✅ **Well tested** — 80%+ coverage on core logic
+- **Dynamic discovery** -- Add a file, it appears instantly
+- **Agent spawning** -- Claude Code offers specialists automatically
+- **Live reloading** -- Changes picked up within 200ms
+- **Zero config** -- Works out of the box
+- **Type safe** -- Full TypeScript strict mode
+- **Well tested** -- 80%+ coverage on core logic
 
 ---
 
@@ -63,7 +51,7 @@ Add tests when writing new features.
 
 **Done!** Claude Code will follow this rule automatically.
 
-→ **For more examples and detailed guidance, see [HUMANS.md](HUMANS.md)**
+> **For more examples and detailed guidance, see [HUMANS.md](HUMANS.md)**
 
 ---
 
@@ -74,7 +62,7 @@ Add tests when writing new features.
 - **`src/resources/`** — MCP resource endpoints
 - **`src/server.ts`** — Server initialization
 
-→ **For technical deep-dive, see [AGENTS.md](AGENTS.md#architecture)**
+> **For the full technical reference, see [AGENTS.md](AGENTS.md#architecture)**
 
 ---
 
@@ -91,4 +79,4 @@ Each file is immediately discoverable by Claude Code via the MCP bridge.
 
 ---
 
-**Choose your starting point above and get going! 👆**
+**Pick the guide that fits your role from the [navigation table](#quick-navigation) above.**

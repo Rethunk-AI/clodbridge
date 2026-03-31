@@ -1,6 +1,8 @@
-# clodbridge
+# clodbridge -- Technical Reference
 
-MCP server that bridges Cursor's `.cursor/` directory (rules, skills, agents) into Claude Code via the Model Context Protocol.
+This document is the primary reference for AI agents and developers working with clodbridge. It covers the MCP tools API, agent spawning mechanics, architecture, and development workflow.
+
+For user-facing guidance (creating rules, skills, agents), see [HUMANS.md](HUMANS.md).
 
 ## Available Agents
 
@@ -109,11 +111,17 @@ When an agent is spawned:
 
 ## Development
 
-Build: `npm run build`
-Test: `npm test`
-Type check: `npm run typecheck`
-Run locally: `node dist/index.js` (uses cwd as project root)
-Run against specific project: `node dist/index.js /path/to/project`
+| Command | Purpose |
+|---------|---------|
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm test` | Run test suite (Vitest) |
+| `npm run typecheck` | Type-check without emitting |
+| `npm run dev` | TypeScript watch mode |
+| `npm run test:watch` | Test watch mode |
+| `npm run lint` | Lint with Biome |
+
+**Run locally:** `node dist/index.js` (uses cwd as project root)
+**Run against a specific project:** `node dist/index.js /path/to/project`
 
 ## Testing
 
@@ -175,6 +183,9 @@ clodbridge exposes these tools to Claude Code:
 
 - `cursor_get_always_rules` — Get rules where `alwaysApply: true`
 - `cursor_get_applicable_rules(file_paths)` — Get rules matching given file paths
+- `cursor_get_agent_requested_rules` — Get agent-requested rules (must be explicitly requested by agents)
+- `cursor_list_rules` — List all available rules with metadata
+- `cursor_get_rule(name)` — Get full rule content by name
 - `cursor_list_skills` — List all available skills with metadata
 - `cursor_get_skill(name)` — Get full skill content by name
 - `cursor_list_agents` — List all available agents with metadata
@@ -184,7 +195,7 @@ All tools are prefixed `mcp__clodbridge__` when invoked in Claude Code.
 
 ## Proactive Agent Usage Pattern
 
-Claude Code will spawn agents proactively when:
+Beyond the [manual and automatic invocation](#how-agent-invocation-works) described above, Claude Code will also spawn agents proactively when:
 
 1. **You mention a task matching an agent's specialization**
    - "I'm debugging the watcher" → suggests codebase-guide
