@@ -3,10 +3,10 @@
  * Generates large fixture sets and verifies load/reload times stay within bounds.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { mkdir, writeFile, rm } from "node:fs/promises";
-import path from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
+import path from "node:path";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createCursorReader } from "../src/reader/index.js";
 
 const RULE_COUNT = 100;
@@ -163,7 +163,7 @@ describe("Performance", () => {
     // The first 3 rules are 512KB each
     const largeRule = reader.store.rules.get("rule-0");
     expect(largeRule).toBeDefined();
-    expect(largeRule!.content.length).toBeGreaterThan(500 * 1024);
+    expect(largeRule?.content.length).toBeGreaterThan(500 * 1024);
   });
 
   it("summary cache serializes to JSON efficiently", async () => {

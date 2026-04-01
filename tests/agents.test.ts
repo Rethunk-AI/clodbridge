@@ -2,10 +2,10 @@
  * Tests for agent discovery functionality.
  */
 
-import { describe, it, expect } from "vitest";
-import { mkdir, writeFile, rm } from "node:fs/promises";
-import path from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
 import { loadAllAgents } from "../src/reader/agents.js";
 
 describe("loadAllAgents", () => {
@@ -80,9 +80,9 @@ Test agent content`,
       const agent = agents.get("test-agent");
 
       expect(agent).toBeDefined();
-      expect(agent!.name).toBe("test-agent");
-      expect(agent!.model).toBe("claude-haiku-4-5-20251001");
-      expect(agent!.description).toBe("Test agent with metadata");
+      expect(agent?.name).toBe("test-agent");
+      expect(agent?.model).toBe("claude-haiku-4-5-20251001");
+      expect(agent?.description).toBe("Test agent with metadata");
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
@@ -109,7 +109,7 @@ Content`,
       const agent = agents.get("no-model");
 
       expect(agent).toBeDefined();
-      expect(agent!.model).toBe(""); // Defaults to empty string
+      expect(agent?.model).toBe(""); // Defaults to empty string
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
@@ -136,7 +136,7 @@ Content`,
       const agent = agents.get("no-desc");
 
       expect(agent).toBeDefined();
-      expect(agent!.description).toBe("");
+      expect(agent?.description).toBe("");
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
@@ -165,7 +165,7 @@ This is the agent definition.`;
       const agent = agents.get("raw-agent");
 
       expect(agent).toBeDefined();
-      expect(agent!.raw).toBe(fileContent);
+      expect(agent?.raw).toBe(fileContent);
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
@@ -197,9 +197,9 @@ With multiple lines.
       const agent = agents.get("content-test");
 
       expect(agent).toBeDefined();
-      expect(agent!.content).toContain("# This is the content");
-      expect(agent!.content).toContain("- Item 1");
-      expect(agent!.raw).toContain("---");
+      expect(agent?.content).toContain("# This is the content");
+      expect(agent?.content).toContain("- Item 1");
+      expect(agent?.raw).toContain("---");
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }

@@ -3,10 +3,10 @@
  * Tests the complete flow: reader → tools/resources functionality
  */
 
-import { describe, it, expect } from "vitest";
-import { mkdir, writeFile, rm } from "node:fs/promises";
-import path from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
 import { createCursorReader } from "../src/reader/index.js";
 import { getAlwaysRules, getApplicableRules } from "../src/reader/rules.js";
 
@@ -109,14 +109,14 @@ Research capabilities`,
       // Test skill access
       const skill = reader.store.skills.get("my-skill");
       expect(skill).toBeDefined();
-      expect(skill!.description).toBe("My custom skill");
-      expect(skill!.content).toContain("# My Skill");
+      expect(skill?.description).toBe("My custom skill");
+      expect(skill?.content).toContain("# My Skill");
 
       // Test agent access
       const agent = reader.store.agents.get("researcher");
       expect(agent).toBeDefined();
-      expect(agent!.model).toBe("claude-opus-4-6");
-      expect(agent!.description).toBe("Research agent");
+      expect(agent?.model).toBe("claude-opus-4-6");
+      expect(agent?.description).toBe("Research agent");
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
@@ -251,15 +251,15 @@ Content`,
       const reader = await createCursorReader(testDir);
 
       const rule = reader.store.rules.get("no-globs");
-      expect(rule!.description).toBe("No globs");
-      expect(rule!.globs).toEqual([]);
-      expect(rule!.alwaysApply).toBe(false);
+      expect(rule?.description).toBe("No globs");
+      expect(rule?.globs).toEqual([]);
+      expect(rule?.alwaysApply).toBe(false);
 
       const skill = reader.store.skills.get("minimal-skill");
-      expect(skill!.description).toBe("");
+      expect(skill?.description).toBe("");
 
       const agent = reader.store.agents.get("no-model");
-      expect(agent!.model).toBe("");
+      expect(agent?.model).toBe("");
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }

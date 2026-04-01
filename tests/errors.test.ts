@@ -3,15 +3,14 @@
  * Covers malformed YAML, missing fields, large files, and permission errors.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mkdir, writeFile, rm, chmod } from "node:fs/promises";
-import path from "node:path";
+import { chmod, mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCursorReader } from "../src/reader/index.js";
+import { parseAgentFile, parseRuleFile, parseSkillFile } from "../src/reader/parse.js";
 import { loadAllRules } from "../src/reader/rules.js";
 import { loadAllSkills } from "../src/reader/skills.js";
-import { loadAllAgents } from "../src/reader/agents.js";
-import { parseRuleFile, parseSkillFile, parseAgentFile } from "../src/reader/parse.js";
 
 describe("Error Handling", () => {
   let testDir: string;

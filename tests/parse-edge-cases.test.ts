@@ -1,7 +1,7 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { mkdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { writeFileSync, unlinkSync, mkdirSync, rmSync } from "node:fs";
-import { parseRuleFile, parseSkillFile, parseAgentFile, parseGlobs } from "../src/reader/parse.js";
+import { afterEach, describe, expect, it } from "vitest";
+import { parseAgentFile, parseGlobs, parseRuleFile, parseSkillFile } from "../src/reader/parse.js";
 
 const fixtureRoot = path.join(import.meta.dirname, "fixtures");
 const rulesDir = path.join(fixtureRoot, ".cursor", "rules");

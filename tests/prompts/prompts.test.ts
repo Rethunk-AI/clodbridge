@@ -2,10 +2,10 @@
  * Tests for MCP prompts (slash commands).
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
 import path from "node:path";
-import { createCursorReader } from "../../src/reader/index.js";
+import { beforeAll, describe, expect, it } from "vitest";
 import { registerPrompts } from "../../src/prompts/index.js";
+import { createCursorReader } from "../../src/reader/index.js";
 import { MockMcpServer } from "../helpers/mock-server.js";
 
 describe("MCP Prompts", () => {

@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll } from "vitest";
 import path from "node:path";
-import { parseRuleFile, parseSkillFile, parseAgentFile, parseGlobs } from "../src/reader/parse.js";
+import { describe, expect, it } from "vitest";
+import { parseAgentFile, parseGlobs, parseRuleFile, parseSkillFile } from "../src/reader/parse.js";
 
 const fixtureRoot = path.join(import.meta.dirname, "fixtures");
 
