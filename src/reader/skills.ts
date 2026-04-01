@@ -36,13 +36,15 @@ export async function loadAllSkills(projectRoot: string): Promise<Map<string, Cu
     for (const subdir of subdirs) {
       if (!subdir.isDirectory() && !subdir.isSymbolicLink()) continue;
 
-      const skillFile = path.join(skillsDir, subdir.name, "SKILL.md");
+      const skillDir = path.join(skillsDir, subdir.name);
+      const skillFile = path.join(skillDir, "SKILL.md");
       try {
         const s = await stat(skillFile);
         if (!s.isFile()) continue;
 
-        // Security: if we successfully resolved projectRoot, validate symlink targets
-        const isValid = await validateSymlinkTarget(skillFile, resolvedRoot, "skill", subdir.name);
+        // Security: validate the skill directory entry — SKILL.md may be a regular file
+        // inside a symlinked dir; lstat(skillFile) would not see the parent symlink.
+        const isValid = await validateSymlinkTarget(skillDir, resolvedRoot, "skill", subdir.name);
         if (!isValid) continue;
       } catch {
         // SKILL.md doesn't exist or symlink is broken — skip
@@ -63,7 +65,7 @@ export async function loadAllSkills(projectRoot: string): Promise<Map<string, Cu
         skills.set(result.value.name, result.value);
       } else {
         process.stderr.write(
-          `[clodbridge] Failed to parse skill "${validEntries[i]!.name}/SKILL.md": ${
+          `[clodbridge] Failed to parse skill "${validEntries[i]?.name}/SKILL.md": ${
             result.reason instanceof Error ? result.reason.message : String(result.reason)
           }\n`,
         );

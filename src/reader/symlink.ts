@@ -1,5 +1,5 @@
-import { realpath, stat } from "fs/promises";
-import * as path from "path";
+import { lstat, realpath } from "node:fs/promises";
+import * as path from "node:path";
 
 /**
  * Validates that a file (potentially a symlink) resolves within projectRoot.
@@ -19,8 +19,8 @@ export async function validateSymlinkTarget(
   itemIdentifier: string,
 ): Promise<boolean> {
   try {
-    const s = await stat(fullPath);
-    // If this is a symlink and we have a resolved projectRoot, validate the target
+    const s = await lstat(fullPath);
+    // lstat (not stat): stat() follows symlinks, so isSymbolicLink() would never be true here.
     if (s.isSymbolicLink() && resolvedRoot) {
       const resolvedFile = await realpath(fullPath);
       const relativePath = path.relative(resolvedRoot, resolvedFile);
@@ -33,7 +33,7 @@ export async function validateSymlinkTarget(
     }
     return true;
   } catch {
-    // stat() failed, skip this file
+    // lstat() failed, skip this file
     return false;
   }
 }

@@ -3,18 +3,18 @@
  * Converts raw file text into domain objects.
  */
 
+import { open, readFile, stat } from "node:fs/promises";
+import path from "node:path";
 import matter from "gray-matter";
 import micromatch from "micromatch";
-import path from "node:path";
-import { readFile, stat, open } from "node:fs/promises";
 import type {
+  AgentFrontmatter,
+  CursorAgent,
   CursorRule,
   CursorSkill,
-  CursorAgent,
   RuleFrontmatter,
-  SkillFrontmatter,
-  AgentFrontmatter,
   RuleMode,
+  SkillFrontmatter,
 } from "./types.js";
 
 /** Warn if a file exceeds this size (10MB) */
@@ -49,7 +49,7 @@ async function readFileWithSizeCheck(filePath: string): Promise<string> {
     process.stderr.write(
       `[clodbridge] Warning: File "${filePath}" content truncated to 1MB (actual size: ${(fileStat.size / 1024 / 1024).toFixed(1)}MB)\n`,
     );
-    return truncatedText + "\n\n[Content truncated: file exceeds 1MB limit]";
+    return `${truncatedText}\n\n[Content truncated: file exceeds 1MB limit]`;
   }
 
   return await readFile(filePath, "utf-8");
@@ -89,7 +89,12 @@ export async function parseRuleFile(filePath: string): Promise<CursorRule> {
  */
 function compileGlobMatcher(globs: string[]): (path: string) => boolean {
   const matchers = globs.map((g) => micromatch.matcher(g));
-  if (matchers.length === 1) return matchers[0]!;
+  if (matchers.length === 1) {
+    const only = matchers[0];
+    if (only !== undefined) {
+      return only;
+    }
+  }
   return (p: string) => matchers.some((m) => m(p));
 }
 
