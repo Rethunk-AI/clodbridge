@@ -31,8 +31,8 @@ export class MockMcpServer {
   }
 
   async callResource(uriString: string, params?: Record<string, unknown>) {
-    let handler: Function | undefined;
-    let extractedParams: Record<string, unknown> = params || {};
+    let handler: Handler | undefined;
+    const extractedParams: Record<string, unknown> = params || {};
 
     if (this.resources.has(uriString)) {
       handler = this.resources.get(uriString)?.handler;
@@ -48,11 +48,15 @@ export class MockMcpServer {
           if (match) {
             handler = resourceDef.handler;
 
-            const paramNames = [];
-            let paramMatch;
+            const paramNames: string[] = [];
             const paramRegex = /\{(\w+)\}/g;
-            while ((paramMatch = paramRegex.exec(resourceUri)) !== null) {
-              paramNames.push(paramMatch[1]);
+            let paramMatch: RegExpExecArray | null = paramRegex.exec(resourceUri);
+            while (paramMatch !== null) {
+              const name = paramMatch[1];
+              if (name !== undefined) {
+                paramNames.push(name);
+              }
+              paramMatch = paramRegex.exec(resourceUri);
             }
 
             for (let i = 0; i < paramNames.length; i++) {
