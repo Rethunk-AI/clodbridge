@@ -8,15 +8,16 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const require = createRequire(import.meta.url);
 const { version } = require("../package.json") as { version: string };
+
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { registerPrompts } from "./prompts/index.js";
 import { createCursorReader } from "./reader/index.js";
-import { registerRulesTools } from "./tools/rules-tools.js";
-import { registerSkillsTools } from "./tools/skills-tools.js";
-import { registerAgentsTools } from "./tools/agents-tools.js";
+import { registerAgentsResources } from "./resources/agents-resources.js";
 import { registerRulesResources } from "./resources/rules-resources.js";
 import { registerSkillsResources } from "./resources/skills-resources.js";
-import { registerAgentsResources } from "./resources/agents-resources.js";
-import { registerPrompts } from "./prompts/index.js";
+import { registerAgentsTools } from "./tools/agents-tools.js";
+import { registerRulesTools } from "./tools/rules-tools.js";
+import { registerSkillsTools } from "./tools/skills-tools.js";
 
 /**
  * Create and configure the MCP server.

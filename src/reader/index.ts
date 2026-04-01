@@ -4,22 +4,22 @@
  */
 
 import path from "node:path";
+import { loadAllAgents } from "./agents.js";
 import { loadAllRules } from "./rules.js";
 import { loadAllSkills } from "./skills.js";
-import { loadAllAgents } from "./agents.js";
-import { createWatcher } from "./watcher.js";
 import type {
+  AgentSummary,
+  CursorAgent,
   CursorReader,
-  CursorStore,
   CursorRule,
   CursorSkill,
-  CursorAgent,
+  CursorStore,
+  PromptCache,
   RuleSummary,
   SkillSummary,
-  AgentSummary,
   SummaryCache,
-  PromptCache,
 } from "./types.js";
+import { createWatcher } from "./watcher.js";
 
 type CollectionType = "rules" | "skills" | "agents";
 
@@ -265,6 +265,6 @@ export async function createCursorReader(projectRoot: string): Promise<CursorRea
   return reader;
 }
 
+export * from "./types.js";
 // Re-export types
 export type { CursorReader, CursorStore };
-export * from "./types.js";

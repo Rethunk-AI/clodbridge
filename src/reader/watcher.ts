@@ -3,9 +3,9 @@
  * Debounces rapid file changes to avoid excessive reload calls.
  */
 
-import chokidar, { type FSWatcher } from "chokidar";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import chokidar, { type FSWatcher } from "chokidar";
 
 /**
  * Classify a changed file path into its collection based on the first

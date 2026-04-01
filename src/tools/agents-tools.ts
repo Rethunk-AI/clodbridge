@@ -2,8 +2,8 @@
  * MCP tool registrations for Cursor Agents.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { CursorReader } from "../reader/index.js";
 
 /**

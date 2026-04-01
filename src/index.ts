@@ -5,8 +5,8 @@
  * Starts the MCP server or runs in --dump-always-rules mode for hook integration.
  */
 
-import path from "node:path";
 import { stat } from "node:fs/promises";
+import path from "node:path";
 import { createCursorReader } from "./reader/index.js";
 import { getAlwaysRules } from "./reader/rules.js";
 import { startServer } from "./server.js";
