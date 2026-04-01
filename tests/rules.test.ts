@@ -2,11 +2,11 @@
  * Tests for rule discovery and matching functionality.
  */
 
-import { describe, it, expect } from "vitest";
-import { mkdir, writeFile, rm } from "node:fs/promises";
-import path from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
-import { loadAllRules, getApplicableRules, getAlwaysRules } from "../src/reader/rules.js";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import { getAlwaysRules, getApplicableRules, loadAllRules } from "../src/reader/rules.js";
 
 describe("loadAllRules", () => {
   it("returns empty map when .cursor/rules directory does not exist", async () => {
@@ -81,11 +81,11 @@ Rule content here.`,
       const rule = rules.get("test-metadata");
 
       expect(rule).toBeDefined();
-      expect(rule!.name).toBe("test-metadata");
-      expect(rule!.description).toBe("Test rule for metadata");
-      expect(rule!.globs).toEqual(["src/**", "tests/**"]);
-      expect(rule!.alwaysApply).toBe(false);
-      expect(rule!.mode).toBe("auto-attached");
+      expect(rule?.name).toBe("test-metadata");
+      expect(rule?.description).toBe("Test rule for metadata");
+      expect(rule?.globs).toEqual(["src/**", "tests/**"]);
+      expect(rule?.alwaysApply).toBe(false);
+      expect(rule?.mode).toBe("auto-attached");
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
@@ -129,9 +129,9 @@ Content`,
 
       const rules = await loadAllRules(testDir);
 
-      expect(rules.get("always")!.mode).toBe("always");
-      expect(rules.get("auto")!.mode).toBe("auto-attached");
-      expect(rules.get("agent")!.mode).toBe("agent-requested");
+      expect(rules.get("always")?.mode).toBe("always");
+      expect(rules.get("auto")?.mode).toBe("auto-attached");
+      expect(rules.get("agent")?.mode).toBe("agent-requested");
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }

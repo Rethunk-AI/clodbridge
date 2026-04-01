@@ -3,13 +3,13 @@
  * Tests that the server is created successfully with proper reader integration.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mkdir, writeFile, rm } from "node:fs/promises";
-import path from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
-import { createServer } from "../src/server.js";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCursorReader } from "../src/reader/index.js";
 import { getAlwaysRules } from "../src/reader/rules.js";
+import { createServer } from "../src/server.js";
 
 describe("createServer integration", () => {
   let testDir: string;

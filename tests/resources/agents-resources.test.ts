@@ -2,8 +2,8 @@
  * Tests for MCP agents resources (cursor://agents and cursor://agents/{name})
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
 import path from "node:path";
+import { beforeAll, describe, expect, it } from "vitest";
 import { createCursorReader } from "../../src/reader/index.js";
 import { registerAgentsResources } from "../../src/resources/agents-resources.js";
 import { MockMcpServer } from "../helpers/mock-server.js";

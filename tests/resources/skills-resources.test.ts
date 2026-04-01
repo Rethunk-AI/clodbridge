@@ -2,8 +2,8 @@
  * Tests for MCP skills resources (cursor://skills and cursor://skills/{name})
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
 import path from "node:path";
+import { beforeAll, describe, expect, it } from "vitest";
 import { createCursorReader } from "../../src/reader/index.js";
 import { registerSkillsResources } from "../../src/resources/skills-resources.js";
 import { MockMcpServer } from "../helpers/mock-server.js";

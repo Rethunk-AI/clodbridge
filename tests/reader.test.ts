@@ -2,10 +2,10 @@
  * Integration tests for the CursorReader facade.
  */
 
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { mkdir, writeFile, rm } from "node:fs/promises";
-import path from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createCursorReader } from "../src/reader/index.js";
 
 describe("CursorReader", () => {

@@ -2,10 +2,10 @@
  * Tests for skill discovery functionality.
  */
 
-import { describe, it, expect } from "vitest";
-import { mkdir, writeFile, rm } from "node:fs/promises";
-import path from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
 import { loadAllSkills } from "../src/reader/skills.js";
 
 describe("loadAllSkills", () => {
@@ -78,7 +78,7 @@ Content`,
       const skill = skills.get("debug-skill");
 
       expect(skill).toBeDefined();
-      expect(skill!.name).toBe("debug-skill");
+      expect(skill?.name).toBe("debug-skill");
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
@@ -107,8 +107,8 @@ This is the skill content.`,
       const skill = skills.get("test-skill");
 
       expect(skill).toBeDefined();
-      expect(skill!.description).toBe("A test skill with details");
-      expect(skill!.content).toContain("# Test Skill");
+      expect(skill?.description).toBe("A test skill with details");
+      expect(skill?.content).toContain("# Test Skill");
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
@@ -134,7 +134,7 @@ Content without description`,
       const skill = skills.get("no-desc-skill");
 
       expect(skill).toBeDefined();
-      expect(skill!.description).toBe("");
+      expect(skill?.description).toBe("");
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
@@ -162,7 +162,7 @@ This is the full content.`;
       const skill = skills.get("raw-skill");
 
       expect(skill).toBeDefined();
-      expect(skill!.raw).toBe(fileContent);
+      expect(skill?.raw).toBe(fileContent);
     } finally {
       await rm(testDir, { recursive: true, force: true });
     }
