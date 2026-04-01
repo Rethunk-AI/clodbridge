@@ -2,8 +2,8 @@
  * Tests for MCP rules tools (cursor_get_always_rules, cursor_get_applicable_rules).
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
 import path from "node:path";
+import { beforeAll, describe, expect, it } from "vitest";
 import { createCursorReader } from "../../src/reader/index.js";
 import { registerRulesTools } from "../../src/tools/rules-tools.js";
 import { MockMcpServer } from "../helpers/mock-server.js";

@@ -4,10 +4,10 @@
  * (broken symlinks, cycles, edge cases).
  */
 
-import { describe, it, expect } from "vitest";
-import { mkdir, writeFile, rm, symlink } from "node:fs/promises";
-import path from "node:path";
+import { mkdir, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
 import { loadAllSkills } from "../src/reader/skills.js";
 
 const SKILL_CONTENT = `---

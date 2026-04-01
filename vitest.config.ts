@@ -5,7 +5,8 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     coverage: {
       provider: 'v8',
-      include: ['src/**'],
+      // Match CLAUDE.md: gate reader layer only (CLI/tools/resources are thin MCP wiring).
+      include: ['src/reader/**/*.ts'],
       exclude: [],
       thresholds: {
         lines: 80,

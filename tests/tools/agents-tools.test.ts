@@ -2,8 +2,8 @@
  * Tests for MCP agents tools (cursor_list_agents, cursor_get_agent).
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
 import path from "node:path";
+import { beforeAll, describe, expect, it } from "vitest";
 import { createCursorReader } from "../../src/reader/index.js";
 import { registerAgentsTools } from "../../src/tools/agents-tools.js";
 import { MockMcpServer } from "../helpers/mock-server.js";

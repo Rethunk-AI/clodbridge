@@ -2,15 +2,15 @@
  * Tests for MCP skills tools (cursor_list_skills, cursor_get_skill).
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
 import path from "node:path";
+import { beforeAll, describe, expect, it } from "vitest";
 import { createCursorReader } from "../../src/reader/index.js";
 import { registerSkillsTools } from "../../src/tools/skills-tools.js";
 
 class MockMcpServer {
   private tools: Map<string, { description: string; handler: Function }> = new Map();
 
-  tool(name: string, description: string, schema: object, handler: Function) {
+  tool(name: string, description: string, _schema: object, handler: Function) {
     this.tools.set(name, { description, handler });
   }
 
