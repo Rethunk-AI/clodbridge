@@ -315,7 +315,7 @@ clodbridge can also run in **hook mode** for Claude Code's hook system. This inj
 
 ## Getting Help
 
-- **How do I write a rule?** -- See the `commit-early-commit-often` rule in `.cursor/rules/` for a working example
+- **How do I write a rule?** -- See `verify-before-proceeding.mdc` or `incremental-validation.mdc` in `.cursor/rules/` for working examples
 - **How do I structure a skill?** -- Check `.cursor/skills/` for examples
 - **How do I define an agent?** -- Look at `.cursor/agents/mcp-validator.md`
 - **How do I ask Claude Code to use my rule?** -- If it is marked `alwaysApply: true`, Claude follows it automatically. Otherwise, just mention the topic and matching rules will activate.

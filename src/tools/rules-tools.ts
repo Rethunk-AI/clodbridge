@@ -136,7 +136,7 @@ export function registerRulesTools(server: McpServer, reader: CursorReader): voi
       name: z
         .string()
         .describe(
-          'The rule name (filename without .mdc extension, e.g. "commit-early-commit-often")',
+          'The rule name (filename without .mdc extension, e.g. "verify-before-proceeding")',
         ),
     },
     async ({ name }) => {

@@ -224,7 +224,7 @@ After:
 - Technical stack
 
 **feedback_rules_development.md:**
-- The 7 rules codified in .cursor/rules/ (commit-early, verify-before, etc.)
+- The rules codified in `.cursor/rules/` (verify-before-proceeding, incremental-validation, etc.)
 - Why each rule matters
 - How to apply each rule
 

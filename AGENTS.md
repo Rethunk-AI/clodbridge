@@ -47,16 +47,11 @@ clodbridge exposes three specialized subagents that Claude Code can spawn proact
 
 **Example:** "Where should I add a new file type? Use the codebase-guide agent."
 
-### 3. **commit-early-commit-often** (Codified in Rules)
+## Git / delivery (user-global)
 
-**Specialization:** Development workflow and commit discipline.
+**Cadence, `batch_commit`, verify-before-push:** **`~/.cursor/skills/agent-deliver/SKILL.md`** and **`~/.cursor/skills/git-commit-batches/SKILL.md`**—do not duplicate that workflow in repo rules.
 
-**When Claude Code will spawn it:**
-- You ask about commit strategy
-- You're starting a new feature
-- You need guidance on breaking work into chunks
-
-**See also:** The `commit-early-commit-often` skill for detailed patterns and examples.
+**Optional clodbridge-only slice order:** [`.cursor/skills/clodbridge-commit-cadence/SKILL.md`](.cursor/skills/clodbridge-commit-cadence/SKILL.md).
 
 ## How Agent Invocation Works
 
