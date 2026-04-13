@@ -7,10 +7,12 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { createCursorReader } from "../../src/reader/index.js";
 import { registerSkillsTools } from "../../src/tools/skills-tools.js";
 
-class MockMcpServer {
-  private tools: Map<string, { description: string; handler: Function }> = new Map();
+type ToolHandler = (input: unknown) => Promise<unknown>;
 
-  tool(name: string, description: string, _schema: object, handler: Function) {
+class MockMcpServer {
+  private tools: Map<string, { description: string; handler: ToolHandler }> = new Map();
+
+  tool(name: string, description: string, _schema: object, handler: ToolHandler) {
     this.tools.set(name, { description, handler });
   }
 

@@ -12,5 +12,17 @@
     "indentStyle": "space",
     "indentWidth": 2,
     "lineWidth": 100
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["tests/**/*.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
+    }
+  ]
 }
