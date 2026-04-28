@@ -19,6 +19,7 @@ Define custom **rules**, **skills**, and **agents** in your project. Claude Code
 | **Users** | [HUMANS.md](HUMANS.md) | Quick start, creating rules/skills/agents, best practices, troubleshooting |
 | **AI Agents & Developers** | [AGENTS.md](AGENTS.md) | MCP tools reference, agent spawning, architecture, development guide |
 | **Contributors** | [CONTRIBUTING.md](CONTRIBUTING.md) | Testing, build setup, adding file types, code conventions |
+| **Security** | [SECURITY.md](SECURITY.md) | Reporting vulnerabilities, supported versions, security practices |
 
 ---
 
