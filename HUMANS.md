@@ -302,7 +302,7 @@ clodbridge can also run in **hook mode** for Claude Code's hook system. This inj
 }
 ```
 
-2. Replace `/path/to/clodbridge` with the actual path to the clodbridge CLI (e.g., `~/.npm/_npx/clodbridge@latest/bin/clodbridge.js`).
+2. Replace `/path/to/clodbridge` with the actual path to the clodbridge CLI (e.g., the output of `which clodbridge` after installing globally, or the full path to `dist/index.js` in a local clone).
 
 3. clodbridge will now output your always-apply rules as additional context on every prompt.
 

@@ -7,34 +7,34 @@ Thanks for your interest in contributing! This guide will help you get started.
 ### Prerequisites
 
 - Node.js 22+
-- npm 10+ or compatible package manager
+- [Bun](https://bun.sh) 1.3+ (the project's declared `packageManager`)
 
 ### Clone and Install
 
 ```bash
 git clone https://github.com/Rethunk-AI/clodbridge.git
 cd clodbridge
-npm install
+bun install
 ```
 
 ### Build and Test
 
 ```bash
 # Type check
-npm run typecheck
+bun run typecheck
 
 # Run tests
-npm test
+bun test
 
 # Watch mode for development
-npm run dev      # TypeScript watch
-npm run test:watch  # Tests watch mode
+bun run dev         # TypeScript watch
+bun run test:watch  # Tests watch mode
 
 # Build distribution
-npm run build
+bun run build
 
 # Run coverage
-npm run test:coverage
+bun run test:coverage
 ```
 
 ## Development Workflow
@@ -62,8 +62,8 @@ Co-Authored-By: Your Name <you@example.com>
 After each commit, verify:
 
 ```bash
-npm run typecheck  # Zero errors required
-npm test           # All tests must pass
+bun run typecheck  # Zero errors required
+bun test           # All tests must pass
 ```
 
 Never proceed to the next feature until verification passes. Fix the root cause, don't work around it.
@@ -104,7 +104,7 @@ If extending clodbridge to support a new Cursor file type (e.g., Commands, Prese
 - **stdout**: MCP wire protocol only
 - **stderr**: All logging, diagnostics, errors
 
-Enforce with `npm run lint`.
+Enforce with `bun run lint`.
 
 ### Error Handling
 

@@ -108,12 +108,12 @@ When an agent is spawned:
 
 | Command | Purpose |
 |---------|---------|
-| `npm run build` | Compile TypeScript to `dist/` |
-| `npm test` | Run test suite (Vitest) |
-| `npm run typecheck` | Type-check without emitting |
-| `npm run dev` | TypeScript watch mode |
-| `npm run test:watch` | Test watch mode |
-| `npm run lint` | Lint with Biome |
+| `bun run build` | Compile TypeScript to `dist/` |
+| `bun test` | Run test suite (Vitest) |
+| `bun run typecheck` | Type-check without emitting |
+| `bun run dev` | TypeScript watch mode |
+| `bun run test:watch` | Test watch mode |
+| `bun run lint` | Lint with Biome |
 
 **Run locally:** `node dist/index.js` (uses cwd as project root)
 **Run against a specific project:** `node dist/index.js /path/to/project`
@@ -121,7 +121,7 @@ When an agent is spawned:
 ## Testing
 
 Tests live in `tests/` with fixtures in `tests/fixtures/.cursor/`.
-Use `npm test` for CI, `npm run test:watch` for watch mode.
+Use `bun test` for CI, `bun run test:watch` for watch mode.
 Coverage target: 80%+ on `src/reader/`.
 
 ## Adding a New File Type

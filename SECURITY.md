@@ -29,10 +29,9 @@ The following versions of clodbridge are currently supported with security updat
 
 | Version | Release Date | Support Status | End of Support |
 |---------|--------------|---|---|
-| 2.x | April 2026 | Active | April 2027 |
-| 1.x | 2025 | Maintenance | April 2026 |
+| 1.x | March 2026 | Active | TBD |
 
-Only the current major version receives active security patches. Users are encouraged to upgrade to the latest version.
+Only the current major version receives active security patches. Users are encouraged to upgrade to the latest release.
 
 ## Security Practices
 
