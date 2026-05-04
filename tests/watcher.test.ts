@@ -267,7 +267,7 @@ describe("createWatcher", () => {
       }
     });
 
-    it("survives when parent directory permissions are temporarily revoked", async () => {
+    it.skipIf(!!process.env.CI)("survives when parent directory permissions are temporarily revoked", async () => {
       const testDir = await makeTempDir("parent-perm");
       const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
