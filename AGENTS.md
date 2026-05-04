@@ -49,7 +49,7 @@ clodbridge exposes three specialized subagents that Claude Code can spawn proact
 
 ## Git / delivery (user-global)
 
-**Cadence, `batch_commit`, verify-before-push:** **`~/.cursor/skills/agent-deliver/SKILL.md`** and **`~/.cursor/skills/git-commit-batches/SKILL.md`**—do not duplicate that workflow in repo rules.
+**Cadence, `batch_commit`, verify-before-push:** **`~/.claude/skills/agent-deliver/SKILL.md`** and **`~/.claude/skills/good-version-control/SKILL.md`**—do not duplicate that workflow in repo rules.
 
 **Optional clodbridge-only slice order:** [`.cursor/skills/clodbridge-commit-cadence/SKILL.md`](.cursor/skills/clodbridge-commit-cadence/SKILL.md).
 
