@@ -91,6 +91,8 @@ export function createWatcher(cursorDir: string, onChange: (filePath: string) =>
       watcher.on("error", (err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         process.stderr.write(`[clodbridge] Watcher error on ${cursorDir}: ${msg}\n`);
+        watcher.close().catch(() => {});
+        activeWatcher = null;
       });
 
       activeWatcher = watcher;
@@ -116,6 +118,8 @@ export function createWatcher(cursorDir: string, onChange: (filePath: string) =>
       parentWatcher.on("error", (err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         process.stderr.write(`[clodbridge] Watcher error on ${parentDir}: ${msg}\n`);
+        parentWatcher.close().catch(() => {});
+        if (activeWatcher === parentWatcher) activeWatcher = null;
       });
 
       parentWatcher.on("addDir", (dirPath: string) => {
