@@ -267,39 +267,42 @@ describe("createWatcher", () => {
       }
     });
 
-    it.skipIf(!!process.env.CI)("survives when parent directory permissions are temporarily revoked", async () => {
-      const testDir = await makeTempDir("parent-perm");
-      const rulesDir = path.join(testDir, "rules");
-      await mkdir(rulesDir, { recursive: true });
+    it.skipIf(!!process.env.CI)(
+      "survives when parent directory permissions are temporarily revoked",
+      async () => {
+        const testDir = await makeTempDir("parent-perm");
+        const rulesDir = path.join(testDir, "rules");
+        await mkdir(rulesDir, { recursive: true });
 
-      const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
-      const callback = vi.fn();
-      const stop = createWatcher(testDir, callback);
+        const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+        const callback = vi.fn();
+        const stop = createWatcher(testDir, callback);
 
-      try {
-        await wait(150);
+        try {
+          await wait(150);
 
-        // Revoke permissions on the entire cursor dir
-        await chmod(testDir, 0o000);
-        await wait(200);
+          // Revoke permissions on the entire cursor dir
+          await chmod(testDir, 0o000);
+          await wait(200);
 
-        // Restore permissions
-        await chmod(testDir, 0o755);
-        await wait(200);
+          // Restore permissions
+          await chmod(testDir, 0o755);
+          await wait(200);
 
-        // Write a new file to see if watcher recovers
-        await writeFile(path.join(rulesDir, "recovered.mdc"), "recovered");
-        await wait(300);
+          // Write a new file to see if watcher recovers
+          await writeFile(path.join(rulesDir, "recovered.mdc"), "recovered");
+          await wait(300);
 
-        // Stop should be clean regardless
-        expect(() => stop()).not.toThrow();
-      } finally {
-        await chmod(testDir, 0o755).catch(() => {});
-        stop();
-        stderrSpy.mockRestore();
-        await rm(testDir, { recursive: true, force: true });
-      }
-    });
+          // Stop should be clean regardless
+          expect(() => stop()).not.toThrow();
+        } finally {
+          await chmod(testDir, 0o755).catch(() => {});
+          stop();
+          stderrSpy.mockRestore();
+          await rm(testDir, { recursive: true, force: true });
+        }
+      },
+    );
   });
 
   // ----------------------------------------------------------------
