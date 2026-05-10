@@ -71,6 +71,8 @@ export function createWatcher(cursorDir: string, onChange: (filePath: string) =>
       const watcher = chokidar.watch(cursorDir, {
         ignoreInitial: true,
         persistent: false,
+        usePolling: true,
+        interval: 100,
       });
 
       watcher.on("add", debouncedCallback);
@@ -111,6 +113,10 @@ export function createWatcher(cursorDir: string, onChange: (filePath: string) =>
         ignoreInitial: true,
         persistent: false,
         depth: 0,
+        usePolling: true,
+        interval: 100,
+        ignored: (filePath: string) =>
+          filePath !== parentDir && path.basename(filePath) !== cursorDirName,
       });
 
       activeWatcher = parentWatcher;
