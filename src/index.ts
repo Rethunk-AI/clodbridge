@@ -13,7 +13,7 @@ import { startServer } from "./server.js";
 
 // Dynamic import of package.json for version
 const packageJson = await import("../package.json", {
-  assert: { type: "json" },
+  with: { type: "json" },
 });
 const VERSION = packageJson.default.version;
 
