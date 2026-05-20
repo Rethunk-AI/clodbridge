@@ -11,6 +11,20 @@ import { createWatcher } from "../src/reader/watcher.js";
 /** Helper: wait for a specified number of milliseconds. */
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Poll until predicate is true or timeout (for flaky filesystem watchers). */
+async function waitUntil(
+  predicate: () => boolean,
+  timeoutMs = 3000,
+  intervalMs = 50,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (predicate()) return;
+    await wait(intervalMs);
+  }
+  throw new Error(`waitUntil timed out after ${timeoutMs}ms`);
+}
+
 /** Helper: create a unique temp directory under $TMPDIR. */
 async function makeTempDir(label: string): Promise<string> {
   const dir = path.join(
@@ -470,17 +484,14 @@ describe("createWatcher", () => {
 
         // Create a normal file to verify watcher is alive
         await writeFile(path.join(rulesDir, "good.mdc"), "good");
-        await wait(300);
-        expect(callback.mock.calls.length).toBeGreaterThanOrEqual(1);
+        await waitUntil(() => callback.mock.calls.length >= 1);
 
         // Record current call count
         const countAfterFirst = callback.mock.calls.length;
 
         // Create another file -- watcher should still fire
         await writeFile(path.join(rulesDir, "good2.mdc"), "good2");
-        await wait(300);
-
-        expect(callback.mock.calls.length).toBeGreaterThan(countAfterFirst);
+        await waitUntil(() => callback.mock.calls.length > countAfterFirst);
       } finally {
         stop();
         stderrSpy.mockRestore();
