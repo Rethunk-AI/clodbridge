@@ -38,15 +38,15 @@
     "chokidar": "^5.0.0",
     "gray-matter": "^4.0.3",
     "micromatch": "^4.0.8",
-    "zod": "^3.25.76"
+    "zod": "^3"
   },
   "devDependencies": {
-    "@biomejs/biome": "~2.4.15",
+    "@biomejs/biome": "~2.4.16",
     "@types/micromatch": "^4.0.10",
     "@types/node": "^25.9.1",
-    "@vitest/coverage-v8": "^4.1.6",
+    "@vitest/coverage-v8": "^4.1.7",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.7"
   },
   "engines": {
     "node": ">=22.0.0"
