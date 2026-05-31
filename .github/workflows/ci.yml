@@ -18,7 +18,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install
-      - run: bun run typecheck
+      - run: bun run ci
       - run: bun run lint
       - run: bun run build
       - run: bun run test:coverage
