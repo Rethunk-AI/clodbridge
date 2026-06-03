@@ -159,17 +159,18 @@ describe("createWatcher", () => {
       for (let i = 0; i < 2; i++) {
         await writeFile(path.join(rulesDir, `batch1-${i}.mdc`), `content 1-${i}`);
       }
-      await wait(300);
+      // Wait until the debounced callback fires rather than using a fixed sleep,
+      // so the test is stable under CI load (polling interval + debounce can
+      // easily exceed 300ms on a busy host).
+      await waitUntil(() => callback.mock.calls.length >= 1);
       const firstCallCount = callback.mock.calls.length;
 
       // Second batch
       for (let i = 0; i < 2; i++) {
         await writeFile(path.join(rulesDir, `batch2-${i}.mdc`), `content 2-${i}`);
       }
-      await wait(300);
-      const secondCallCount = callback.mock.calls.length;
-
-      expect(secondCallCount).toBeGreaterThan(firstCallCount);
+      // Same: poll until the watcher fires at least once more.
+      await waitUntil(() => callback.mock.calls.length > firstCallCount);
 
       stop();
     } finally {
