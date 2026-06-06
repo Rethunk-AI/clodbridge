@@ -9,12 +9,12 @@
         "chokidar": "^5.0.0",
         "gray-matter": "^4.0.3",
         "micromatch": "^4.0.8",
-        "zod": "4.4.3",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@biomejs/biome": "~2.4.16",
         "@types/micromatch": "^4.0.10",
-        "@types/node": "25.9.2",
+        "@types/node": "^25.9.2",
         "@vitest/coverage-v8": "^4.1.8",
         "typescript": "^6.0.3",
         "vitest": "^4.1.8",
@@ -25,7 +25,6 @@
     "@hono/node-server": "^1.19.14",
     "fast-uri": "^3.1.2",
     "hono": "^4.12.18",
-    "zod": "3.25.76",
   },
   "packages": {
     "@babel/helper-string-parser": ["@babel/helper-string-parser@7.27.1", "", {}, "sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA=="],
@@ -488,7 +487,7 @@
 
     "wrappy": ["wrappy@1.0.2", "", {}, "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ=="],
 
-    "zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
+    "zod": ["zod@4.4.3", "", {}, "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="],
 
     "zod-to-json-schema": ["zod-to-json-schema@3.25.2", "", { "peerDependencies": { "zod": "^3.25.28 || ^4" } }, "sha512-O/PgfnpT1xKSDeQYSCfRI5Gy3hPf91mKVDuYLUHZJMiDFptvP41MSnWofm8dnCm0256ZNfZIM7DSzuSMAFnjHA=="],
 
