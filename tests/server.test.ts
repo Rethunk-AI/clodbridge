@@ -4,18 +4,18 @@
  */
 
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCursorReader } from "../src/reader/index.js";
 import { getAlwaysRules } from "../src/reader/rules.js";
 import { createServer } from "../src/server.js";
+import { makeTmpDir } from "./helpers/temp-dir.js";
 
 describe("createServer integration", () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `clodbridge-server-${Date.now()}`);
+    testDir = makeTmpDir("clodbridge-server-");
     await mkdir(testDir, { recursive: true });
   });
 

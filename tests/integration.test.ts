@@ -4,15 +4,15 @@
  */
 
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { createCursorReader } from "../src/reader/index.js";
 import { getAlwaysRules, getApplicableRules } from "../src/reader/rules.js";
+import { makeTmpDir } from "./helpers/temp-dir.js";
 
 describe("End-to-End Integration", () => {
   it("complete workflow: load files, query rules, list skills, get agents", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-e2e-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-e2e-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -123,7 +123,7 @@ Research capabilities`,
   });
 
   it("handles complex glob patterns correctly", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-globs-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-globs-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -157,7 +157,7 @@ Content`,
   });
 
   it("reload updates all stores correctly", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-reload-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-reload-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -207,7 +207,7 @@ Content`,
   });
 
   it("handles missing fields with defaults", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-defaults-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-defaults-");
     await mkdir(testDir, { recursive: true });
 
     try {

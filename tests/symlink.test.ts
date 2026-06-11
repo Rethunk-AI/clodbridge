@@ -5,10 +5,10 @@
  */
 
 import { mkdir, rm, symlink, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadAllSkills } from "../src/reader/skills.js";
+import { makeTmpDir } from "./helpers/temp-dir.js";
 
 const SKILL_CONTENT = `---
 name: test
@@ -17,10 +17,7 @@ description: Test skill
 Test content`;
 
 function tmpDir(label: string): string {
-  return path.join(
-    os.tmpdir(),
-    `clodbridge-symlink-${label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-  );
+  return makeTmpDir(`clodbridge-symlink-${label}-`);
 }
 
 describe("symlink handling in skills loader", () => {

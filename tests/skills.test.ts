@@ -3,14 +3,14 @@
  */
 
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadAllSkills } from "../src/reader/skills.js";
+import { makeTmpDir } from "./helpers/temp-dir.js";
 
 describe("loadAllSkills", () => {
   it("returns empty map when .cursor/skills directory does not exist", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-skills-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-skills-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -22,7 +22,7 @@ describe("loadAllSkills", () => {
   });
 
   it("loads skills from nested directories", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-skills-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-skills-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -58,7 +58,7 @@ More content`,
   });
 
   it("uses directory name as skill name", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-skills-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-skills-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -85,7 +85,7 @@ Content`,
   });
 
   it("parses skill metadata correctly", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-skills-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-skills-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -115,7 +115,7 @@ This is the skill content.`,
   });
 
   it("handles missing description gracefully", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-skills-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-skills-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -141,7 +141,7 @@ Content without description`,
   });
 
   it("stores raw file text for complete skill content", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-skills-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-skills-");
     await mkdir(testDir, { recursive: true });
 
     try {

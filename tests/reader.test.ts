@@ -3,10 +3,10 @@
  */
 
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createCursorReader } from "../src/reader/index.js";
+import { makeTmpDir } from "./helpers/temp-dir.js";
 
 describe("CursorReader", () => {
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("CursorReader", () => {
   });
 
   it("loads rules, skills, and agents from .cursor directory", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-reader-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-reader-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -67,7 +67,7 @@ Content`,
   });
 
   it("handles empty .cursor directory gracefully", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-empty-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-empty-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -82,7 +82,7 @@ Content`,
   });
 
   it("supports reload method", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-reload-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-reload-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -120,7 +120,7 @@ Content`,
   });
 
   it("supports watch with onChange callback", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-watch-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-watch-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -159,7 +159,7 @@ Content`,
   }, 5000);
 
   it("handles concurrent reload calls gracefully", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-concurrent-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-concurrent-");
     await mkdir(testDir, { recursive: true });
 
     try {

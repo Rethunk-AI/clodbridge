@@ -3,10 +3,10 @@
  */
 
 import { chmod, mkdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createWatcher } from "../src/reader/watcher.js";
+import { makeTmpDir } from "./helpers/temp-dir.js";
 
 /** Helper: wait for a specified number of milliseconds. */
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -26,13 +26,8 @@ async function waitUntil(
 }
 
 /** Helper: create a unique temp directory under $TMPDIR. */
-async function makeTempDir(label: string): Promise<string> {
-  const dir = path.join(
-    os.tmpdir(),
-    `clodbridge-watcher-${label}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-  );
-  await mkdir(dir, { recursive: true });
-  return dir;
+function makeTempDir(label: string): string {
+  return makeTmpDir(`clodbridge-watcher-${label}-`);
 }
 
 describe("createWatcher", () => {
@@ -45,7 +40,7 @@ describe("createWatcher", () => {
   // ----------------------------------------------------------------
 
   it("returns a stop function", async () => {
-    const testDir = await makeTempDir("ret");
+    const testDir = makeTempDir("ret");
     try {
       const stop = createWatcher(testDir, () => {});
       expect(typeof stop).toBe("function");
@@ -56,7 +51,10 @@ describe("createWatcher", () => {
   });
 
   it("handles non-existent directory gracefully", async () => {
-    const nonExistentDir = path.join(os.tmpdir(), `clodbridge-nonexistent-${Date.now()}`);
+    // Build a path that does not exist: create a base temp dir, then reference
+    // a subdirectory inside it that is never created.
+    const baseDir = makeTmpDir("clodbridge-ne-base-");
+    const nonExistentDir = path.join(baseDir, "does-not-exist");
 
     const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
 
@@ -78,11 +76,12 @@ describe("createWatcher", () => {
       ).toBe(true);
     } finally {
       stderrSpy.mockRestore();
+      await rm(baseDir, { recursive: true, force: true });
     }
   });
 
   it("stops watching when stop function is called", async () => {
-    const testDir = await makeTempDir("stop");
+    const testDir = makeTempDir("stop");
     try {
       const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
@@ -104,7 +103,7 @@ describe("createWatcher", () => {
   });
 
   it("debounces rapid file changes", async () => {
-    const testDir = await makeTempDir("debounce");
+    const testDir = makeTempDir("debounce");
     try {
       const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
@@ -129,7 +128,7 @@ describe("createWatcher", () => {
   });
 
   it("handles graceful stop even if watcher has internal errors", async () => {
-    const testDir = await makeTempDir("err");
+    const testDir = makeTempDir("err");
     try {
       const callback = vi.fn();
       const stop = createWatcher(testDir, callback);
@@ -145,7 +144,7 @@ describe("createWatcher", () => {
   });
 
   it("continues operating after multiple sequential batches of changes", async () => {
-    const testDir = await makeTempDir("batches");
+    const testDir = makeTempDir("batches");
     try {
       const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
@@ -179,7 +178,7 @@ describe("createWatcher", () => {
   });
 
   it("gracefully handles stop called multiple times", async () => {
-    const testDir = await makeTempDir("multi-stop");
+    const testDir = makeTempDir("multi-stop");
     try {
       const stop = createWatcher(testDir, () => {});
 
@@ -203,7 +202,7 @@ describe("createWatcher", () => {
 
   describe("directory deletion and recreation", () => {
     it("detects file changes after watched directory is deleted and recreated", async () => {
-      const testDir = await makeTempDir("del-recreate");
+      const testDir = makeTempDir("del-recreate");
       const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
@@ -247,7 +246,7 @@ describe("createWatcher", () => {
 
   describe("permission changes during watching", () => {
     it("survives when watched directory permissions are revoked", async () => {
-      const testDir = await makeTempDir("perm-revoke");
+      const testDir = makeTempDir("perm-revoke");
       const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
@@ -285,7 +284,7 @@ describe("createWatcher", () => {
     it.skipIf(!!process.env.CI)(
       "survives when parent directory permissions are temporarily revoked",
       async () => {
-        const testDir = await makeTempDir("parent-perm");
+        const testDir = makeTempDir("parent-perm");
         const rulesDir = path.join(testDir, "rules");
         await mkdir(rulesDir, { recursive: true });
 
@@ -327,7 +326,7 @@ describe("createWatcher", () => {
   describe("late directory creation", () => {
     it("detects .cursor/ creation and triggers onChange", async () => {
       // Create a parent dir but NOT the .cursor dir itself
-      const parentDir = await makeTempDir("late-create");
+      const parentDir = makeTempDir("late-create");
       const cursorDir = path.join(parentDir, ".cursor");
 
       const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
@@ -368,7 +367,7 @@ describe("createWatcher", () => {
     });
 
     it("does not trigger on unrelated directory creation in parent", async () => {
-      const parentDir = await makeTempDir("unrelated-dir");
+      const parentDir = makeTempDir("unrelated-dir");
       const cursorDir = path.join(parentDir, ".cursor");
 
       const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
@@ -403,7 +402,7 @@ describe("createWatcher", () => {
 
   describe("rapid add/delete cycles", () => {
     it("handles rapid create-delete-create cycles on the same file", async () => {
-      const testDir = await makeTempDir("rapid-cycle");
+      const testDir = makeTempDir("rapid-cycle");
       const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
@@ -439,7 +438,7 @@ describe("createWatcher", () => {
     });
 
     it("handles deleting a file that was never fully written", async () => {
-      const testDir = await makeTempDir("del-before-write");
+      const testDir = makeTempDir("del-before-write");
       const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
@@ -472,7 +471,7 @@ describe("createWatcher", () => {
 
   describe("watcher resilience", () => {
     it("continues watching after one file triggers an error event", async () => {
-      const testDir = await makeTempDir("resilience");
+      const testDir = makeTempDir("resilience");
       const rulesDir = path.join(testDir, "rules");
       await mkdir(rulesDir, { recursive: true });
 
@@ -501,7 +500,7 @@ describe("createWatcher", () => {
     });
 
     it("error handler on watcher logs to stderr and does not crash", async () => {
-      const testDir = await makeTempDir("err-handler");
+      const testDir = makeTempDir("err-handler");
 
       const stderrSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
       const callback = vi.fn();
@@ -527,7 +526,7 @@ describe("createWatcher", () => {
 
   describe("per-collection debouncing", () => {
     it("fires separate callbacks for changes in different collections", async () => {
-      const testDir = await makeTempDir("per-collection");
+      const testDir = makeTempDir("per-collection");
       const rulesDir = path.join(testDir, "rules");
       const agentsDir = path.join(testDir, "agents");
       await mkdir(rulesDir, { recursive: true });
@@ -564,7 +563,7 @@ describe("createWatcher", () => {
     });
 
     it("debounces within a single collection but not across collections", async () => {
-      const testDir = await makeTempDir("cross-collection");
+      const testDir = makeTempDir("cross-collection");
       const rulesDir = path.join(testDir, "rules");
       const skillsDir = path.join(testDir, "skills");
       await mkdir(rulesDir, { recursive: true });
@@ -601,7 +600,7 @@ describe("createWatcher", () => {
 
   describe("files outside known collections", () => {
     it("fires callback for files in unknown subdirectories", async () => {
-      const testDir = await makeTempDir("unknown-subdir");
+      const testDir = makeTempDir("unknown-subdir");
       const otherDir = path.join(testDir, "other");
       await mkdir(otherDir, { recursive: true });
 
@@ -623,7 +622,7 @@ describe("createWatcher", () => {
     });
 
     it("fires callback for files directly in the cursor dir", async () => {
-      const testDir = await makeTempDir("root-file");
+      const testDir = makeTempDir("root-file");
 
       const callback = vi.fn();
       const stop = createWatcher(testDir, callback);

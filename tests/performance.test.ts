@@ -4,10 +4,10 @@
  */
 
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createCursorReader } from "../src/reader/index.js";
+import { makeTmpDir } from "./helpers/temp-dir.js";
 
 const RULE_COUNT = 100;
 const SKILL_COUNT = 50;
@@ -70,7 +70,7 @@ You are an expert in area ${i}.
 
 describe("Performance", () => {
   beforeAll(async () => {
-    testDir = path.join(os.tmpdir(), `clodbridge-perf-${Date.now()}`);
+    testDir = makeTmpDir("clodbridge-perf-");
     rulesDir = path.join(testDir, ".cursor", "rules");
     skillsDir = path.join(testDir, ".cursor", "skills");
     agentsDir = path.join(testDir, ".cursor", "agents");

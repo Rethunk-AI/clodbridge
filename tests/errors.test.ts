@@ -4,7 +4,6 @@
  */
 
 import { chmod, mkdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadAllAgents } from "../src/reader/agents.js";
@@ -12,12 +11,13 @@ import { createCursorReader } from "../src/reader/index.js";
 import { parseAgentFile, parseRuleFile, parseSkillFile } from "../src/reader/parse.js";
 import { loadAllRules } from "../src/reader/rules.js";
 import { loadAllSkills } from "../src/reader/skills.js";
+import { makeTmpDir } from "./helpers/temp-dir.js";
 
 describe("Error Handling", () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `clodbridge-errors-${Date.now()}`);
+    testDir = makeTmpDir("clodbridge-errors-");
     await mkdir(testDir, { recursive: true });
   });
 

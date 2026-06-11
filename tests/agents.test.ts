@@ -3,14 +3,14 @@
  */
 
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadAllAgents } from "../src/reader/agents.js";
+import { makeTmpDir } from "./helpers/temp-dir.js";
 
 describe("loadAllAgents", () => {
   it("returns empty map when .cursor/agents directory does not exist", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-agents-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-agents-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -22,7 +22,7 @@ describe("loadAllAgents", () => {
   });
 
   it("loads all .md files from .cursor/agents directory", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-agents-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-agents-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -59,7 +59,7 @@ Writer content`,
   });
 
   it("parses agent metadata correctly", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-agents-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-agents-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -89,7 +89,7 @@ Test agent content`,
   });
 
   it("handles missing model field", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-agents-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-agents-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -116,7 +116,7 @@ Content`,
   });
 
   it("handles missing description field", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-agents-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-agents-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -143,7 +143,7 @@ Content`,
   });
 
   it("stores raw file text for complete agent content", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-agents-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-agents-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -172,7 +172,7 @@ This is the agent definition.`;
   });
 
   it("separates content from frontmatter", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-agents-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-agents-");
     await mkdir(testDir, { recursive: true });
 
     try {

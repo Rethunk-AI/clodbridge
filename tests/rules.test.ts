@@ -3,14 +3,14 @@
  */
 
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { getAlwaysRules, getApplicableRules, loadAllRules } from "../src/reader/rules.js";
+import { makeTmpDir } from "./helpers/temp-dir.js";
 
 describe("loadAllRules", () => {
   it("returns empty map when .cursor/rules directory does not exist", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-rules-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-rules-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -22,7 +22,7 @@ describe("loadAllRules", () => {
   });
 
   it("loads all .mdc files from .cursor/rules directory", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-rules-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-rules-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -60,7 +60,7 @@ Apply to TypeScript files.`,
   });
 
   it("parses rule metadata correctly", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-rules-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-rules-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -92,7 +92,7 @@ Rule content here.`,
   });
 
   it("derives rule modes correctly", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-rules-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-rules-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -140,7 +140,7 @@ Content`,
 
 describe("getAlwaysRules", () => {
   it("returns only rules with alwaysApply === true", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-always-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-always-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -188,7 +188,7 @@ Auto content`,
 
 describe("getApplicableRules", () => {
   it("includes always rules and matching auto-attached rules", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-applicable-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-applicable-");
     await mkdir(testDir, { recursive: true });
 
     try {
@@ -235,7 +235,7 @@ MD content`,
   });
 
   it("normalizes absolute paths to relative before matching", async () => {
-    const testDir = path.join(os.tmpdir(), `clodbridge-abs-paths-${Date.now()}`);
+    const testDir = makeTmpDir("clodbridge-abs-paths-");
     await mkdir(testDir, { recursive: true });
 
     try {
