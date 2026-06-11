@@ -44,7 +44,7 @@
   "devDependencies": {
     "@biomejs/biome": "~2.4.16",
     "@types/micromatch": "^4.0.10",
-    "@types/node": "^25.9.2",
+    "@types/node": "^25.9.3",
     "@vitest/coverage-v8": "^4.1.8",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"
